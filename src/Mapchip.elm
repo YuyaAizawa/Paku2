@@ -11,7 +11,7 @@ import Svg.Attributes exposing (..)
 
 type Mapchip
  = Wall
- | Jem
+ | Gem
 
 chipSize = 16
 
@@ -34,7 +34,7 @@ tofigureList obj =
       [ FillRect 0 0 16 16 lightGray
       , StrokeRect 4 4 8 8 white
       ]
-    Jem ->
+    Gem ->
       [ Polygon [(0, 8), (8, 8), (8, 0)] blue
       , Polygon [(8, 0), (8, 8), (16, 8)] blue
       , Polygon [(16, 8), (8, 8), (8, 16)] blue

@@ -18,7 +18,7 @@ import Mapchip exposing (Mapchip(..))
 type alias Stage =
   { map: Dict Coords Mapchip
   , playerPos: Coords
-  , remainingJems: Int
+  , gems: Int
   }
 
 type alias Coords = (Int, Int)
@@ -29,7 +29,7 @@ testStage =
     src =
       "WWWWW\n"++
       "W   W\n"++
-      "W  JW\n"++
+      "WG GW\n"++
       "WWWWW"
   in
     fromString src
@@ -37,7 +37,7 @@ testStage =
 
 isCleared: Stage -> Bool
 isCleared stage =
-  stage.remainingJems == 0
+  stage.gems == 0
 
 move: Direction -> Stage -> Stage
 move direction stage =
@@ -57,23 +57,25 @@ move direction stage =
         |> Maybe.map Mapchip.noEntry
         |> Maybe.withDefault False
 
-    getJem =
+    getGem =
       stage.map
         |> Dict.get newPos
-        |> Maybe.map (\m -> m == Jem)
+        |> Maybe.map (\m -> m == Gem)
         |> Maybe.withDefault False
 
-    jems =
-      if getJem
-      then stage.remainingJems - 1
-      else stage.remainingJems
+    gems =
+      if getGem
+      then stage.gems - 1
+      else stage.gems
+
+    map =
+      if getGem
+      then stage.map |> Dict.remove newPos
+      else stage.map
   in
     if noEntry
     then stage
-    else { stage
-      | playerPos = newPos
-      , remainingJems = jems
-      }
+    else { map = map, playerPos = newPos, gems = gems }
 
 enemyTurn: Stage -> Stage
 enemyTurn stage = stage -- stab
@@ -89,7 +91,11 @@ view stage =
 
 toString: Stage -> String
 toString stage =
-  "Stage { player: " ++ coordsToString stage.playerPos ++ " }"
+  "Stage { player: " ++
+  coordsToString stage.playerPos ++
+  ", gems: " ++
+  String.fromInt stage.gems ++
+  "}"
 
 coordsToString (x, y) =
   "(" ++ String.fromInt x ++ ", " ++ String.fromInt y ++ ")"
@@ -100,7 +106,7 @@ fromString src =
     toMapchip c =
       case c of
         "W" -> Just Wall
-        "J" -> Just Jem
+        "G" -> Just Gem
         _ -> Nothing
     map =
       src
@@ -112,10 +118,10 @@ fromString src =
           |> List.filterMap (\m -> m))
         |> List.concatMap (\l -> l)
         |> Dict.fromList
-    jems =
+    gems =
       map
         |> Dict.values
-        |> List.filter (\o -> o == Jem)
+        |> List.filter (\o -> o == Gem)
         |> List.length
   in
-    {map = map, playerPos = (1,1), remainingJems = jems}
+    {map = map, playerPos = (1,1), gems = gems}
