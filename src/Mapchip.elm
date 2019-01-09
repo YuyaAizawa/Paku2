@@ -1,8 +1,9 @@
 module Mapchip exposing
  ( Mapchip(..)
+ , Movility(..)
  , chipSize
  , toSvg
- , noEntry
+ , movility
  , playerSvg
  )
 
@@ -12,6 +13,12 @@ import Svg.Attributes exposing (..)
 type Mapchip
  = Wall
  | Gem
+ | Block
+
+type Movility
+ = Takable
+ | Movable
+ | Fixed
 
 chipSize = 16
 
@@ -21,11 +28,12 @@ toSvg chipOffsetX chipOffsetY obj =
     |> tofigureList
     |> List.map (figureToSvg (chipOffsetX * chipSize) (chipOffsetY * chipSize))
 
-noEntry: Mapchip -> Bool
-noEntry mapchip =
+movility: Mapchip -> Movility
+movility mapchip =
   case mapchip of
-    Wall -> True
-    _ -> False
+    Wall -> Fixed
+    Gem -> Takable
+    Block -> Movable
 
 tofigureList: Mapchip -> List Figure
 tofigureList obj =
@@ -39,6 +47,10 @@ tofigureList obj =
       , Polygon [(8, 0), (8, 8), (16, 8)] blue
       , Polygon [(16, 8), (8, 8), (8, 16)] blue
       , Polygon [(8, 16), (8, 8), (0, 8)] blue
+      ]
+    Block ->
+      [ FillRect 1 1 14 14 yellow
+      , StrokeRect 1 1 14 14 black
       ]
 
 playerSvg: Int -> Int -> Svg msg
@@ -90,8 +102,8 @@ figureToSvg offsetX offsetY obj =
 
 type alias Color = String
 
+yellow = "#FFFF00"
 green = "#00FF00"
-
 blue = "#0000FF"
 
 white = "#FFFFFF"

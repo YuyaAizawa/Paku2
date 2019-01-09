@@ -13,7 +13,7 @@ import Html exposing (Html)
 import Svg exposing (svg)
 
 import Direction exposing (Direction(..))
-import Mapchip exposing (Mapchip(..))
+import Mapchip exposing (Mapchip(..), Movility(..))
 
 type alias Stage =
   { map: Dict Coords Mapchip
@@ -27,10 +27,11 @@ testStage: Stage
 testStage =
   let
     src =
-      "WWWWW\n"++
-      "W   W\n"++
-      "WG GW\n"++
-      "WWWWW"
+      "WWWWWW\n"++
+      "W    W\n"++
+      "WG B W\n"++
+      "W   GW\n"++
+      "WWWWWW"
   in
     fromString src
 
@@ -39,43 +40,65 @@ isCleared: Stage -> Bool
 isCleared stage =
   stage.gems == 0
 
-move: Direction -> Stage -> Stage
-move direction stage =
-  let
-    (x, y) = stage.playerPos
+type EntryType
+ = JustEntry
+ | PushEntry Mapchip
+ | TakeEntry Mapchip
+ | CannotEntry
 
-    newPos =
-      case direction of
+move: Direction -> Stage -> Stage
+move direction {map, playerPos, gems} =
+  let
+    p1 = getCoords direction playerPos
+    p2 = getCoords direction p1
+    o1 = Dict.get p1 map
+    entryType =
+      o1
+        |> Maybe.map
+          ( \o -> case Mapchip.movility o of
+            Takable -> TakeEntry o
+            Movable ->
+              if map |> Dict.member p2
+              then CannotEntry
+              else PushEntry o
+            Fixed -> CannotEntry
+          )
+        |> Maybe.withDefault JustEntry
+    takeGem =
+      o1
+        |> Maybe.map (\o -> o == Gem)
+
+    newMap =
+      case entryType of
+        JustEntry -> map
+        PushEntry o ->
+          map
+            |> Dict.insert p2 o
+            |> Dict.remove p1
+        TakeEntry o ->
+          map
+            |> Dict.remove p1
+        CannotEntry -> map
+    newPlayerPos =
+      case entryType of
+        JustEntry   -> p1
+        PushEntry _ -> p1
+        TakeEntry _ -> p1
+        CannotEntry -> playerPos
+    newGems =
+      if o1 == Just Gem
+      then gems - 1
+      else gems
+
+  in
+    {map = newMap, playerPos = newPlayerPos, gems = newGems}
+
+getCoords direction (x, y) =
+  case direction of
         Up ->    (x    , y - 1)
         Down ->  (x    , y + 1)
         Left ->  (x - 1, y    )
         Right -> (x + 1, y    )
-
-    noEntry =
-      stage.map
-        |> Dict.get newPos
-        |> Maybe.map Mapchip.noEntry
-        |> Maybe.withDefault False
-
-    getGem =
-      stage.map
-        |> Dict.get newPos
-        |> Maybe.map (\m -> m == Gem)
-        |> Maybe.withDefault False
-
-    gems =
-      if getGem
-      then stage.gems - 1
-      else stage.gems
-
-    map =
-      if getGem
-      then stage.map |> Dict.remove newPos
-      else stage.map
-  in
-    if noEntry
-    then stage
-    else { map = map, playerPos = newPos, gems = gems }
 
 enemyTurn: Stage -> Stage
 enemyTurn stage = stage -- stab
@@ -107,6 +130,7 @@ fromString src =
       case c of
         "W" -> Just Wall
         "G" -> Just Gem
+        "B" -> Just Block
         _ -> Nothing
     map =
       src
