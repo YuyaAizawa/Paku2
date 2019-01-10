@@ -62,9 +62,6 @@ move direction {map, playerPos, gems} =
             Fixed -> CannotEntry
           )
         |> Maybe.withDefault JustEntry
-    takeGem =
-      o1
-        |> Maybe.map (\o -> o == Gem)
 
     newMap =
       case entryType of
@@ -84,9 +81,9 @@ move direction {map, playerPos, gems} =
         TakeEntry _ -> p1
         CannotEntry -> playerPos
     newGems =
-      if o1 == Just Gem
-      then gems - 1
-      else gems
+      case o1 of
+        Just (Gem _ _) -> gems - 1
+        _ -> gems
 
   in
     {map = newMap, playerPos = newPlayerPos, gems = newGems}
@@ -119,17 +116,28 @@ enemyTurn seed stage =
     enemyAction pos obj (map, seed_) =
       case obj of
         Kiki direction ->
-          case map |> Dict.get (pos |> towards direction) of
-            Nothing ->
-              ( map |> moveObject pos direction
-              , seed_ )
-            Just ClockwiseBlock ->
-              ( map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
-              , seed_ )
-            Just AntiClockwiseBlock ->
-              ( map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
-              , seed_ )
-            _ -> (map, seed_)
+          let
+            map_ =
+              case map |> Dict.get (pos |> towards direction) of
+                Nothing ->
+                  map |> moveObject pos direction
+                Just ClockwiseBlock ->
+                  map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
+                Just AntiClockwiseBlock ->
+                  map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
+                _ -> map
+          in
+            ( map_, seed_ )
+
+        Gem frame 0 ->
+          let
+            ((nextFrame, nextRemaining), nextSeed) =
+              Random.step gemGenerator seed_
+          in
+            ( (map |> Dict.insert pos ( Gem nextFrame nextRemaining )), nextSeed )
+        Gem frame remaining ->
+          ( (map |> Dict.insert pos (Gem frame (remaining - 1))), seed_ )
+
         _ -> (map, seed_)
 
     (newMap, seed__) =
@@ -139,6 +147,16 @@ enemyTurn seed stage =
   in
     { stage | map = newMap }
 
+gemGenerator: Random.Generator (Direction, Int)
+gemGenerator =
+  Random.pair
+    ((Random.int 0 3)
+      |> Random.map (\n -> case n of
+        0 -> Up
+        1 -> Down
+        2 -> Left
+        _ -> Right))
+    (Random.int 5 10)
 
 view: Stage -> Html msg
 view stage =
@@ -166,7 +184,7 @@ fromString src =
     toMapchip c =
       case c of
         "W" -> Just Wall
-        "G" -> Just Gem
+        "G" -> Just (Gem Up 0)
         "B" -> Just Block
         "8" -> Just (Kiki Up)
         "2" -> Just (Kiki Down)
@@ -189,7 +207,9 @@ fromString src =
     gems =
       map
         |> Dict.values
-        |> List.filter (\o -> o == Gem)
+        |> List.filter (\o -> case o of
+          Gem _ _ -> True
+          _ -> False)
         |> List.length
   in
     {map = map |> Dict.insert (1,1) Paku, playerPos = (1,1), gems = gems}

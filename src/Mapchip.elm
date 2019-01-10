@@ -16,7 +16,11 @@ import Svg.Attributes exposing (..)
 type Mapchip
  = Paku
  | Wall
- | Gem
+ | {-
+      * frame : Direction = アニメーション
+      * remaing : Int = 残りのフレーム数
+   -}
+   Gem Direction Int
  | Block
  | {-
       * direction : Direction = Kikiの向いている方向
@@ -44,7 +48,7 @@ movility mapchip =
   case mapchip of
     Paku -> Fixed
     Wall -> Fixed
-    Gem -> Takable
+    Gem _ _ -> Takable
     Block -> Movable
     Kiki _ -> Movable
     ClockwiseBlock -> Movable
@@ -62,12 +66,18 @@ tofigureList obj =
       , Rectangle 4 4 8 8 white none
       ]
 
-    Gem ->
-      [ Polygon [(0, 8), (8, 8), (8, 0)] none blue
+    Gem Up _ ->
+      [ Polygon [(0, 8), (8, 8), (8, 0)] none lightBlue
       , Polygon [(8, 0), (8, 8), (16, 8)] none darkBlue
       , Polygon [(16, 8), (8, 8), (8, 16)] none blue
       , Polygon [(8, 16), (8, 8), (0, 8)] none darkBlue
       ]
+    Gem Down _ ->
+      Gem Up 0 |> tofigureList |> rotate |> rotate
+    Gem Left _->
+      Gem Up 0 |> tofigureList |> rotate |> rotate |> rotate
+    Gem Right _->
+      Gem Up 0 |> tofigureList |> rotate
 
     Block ->
       [ Rectangle 1 1 14 14 black yellow ]
@@ -76,13 +86,10 @@ tofigureList obj =
       [ Rectangle 1 1 14 14 black yellow
       , Polyline [(8, 13), (8, 3), (3, 8), (13, 8), (8, 3)] red
       ]
-
     Kiki Down ->
       Kiki Up |> tofigureList |> rotate |> rotate
-
     Kiki Left ->
       Kiki Up |> tofigureList |> rotate |> rotate |> rotate
-
     Kiki Right ->
       Kiki Up |> tofigureList |> rotate
 
@@ -189,10 +196,11 @@ type alias Color = String
 none = "none"
 
 red = "#FF0000"
-lightYellow = "#FFFF88"
 yellow = "#FFFF00"
+lightYellow = "#FFFF88"
 green = "#00FF00"
 blue = "#0000FF"
+lightBlue = "#8888FF"
 darkBlue = "#000088"
 
 white = "#FFFFFF"
