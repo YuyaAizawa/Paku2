@@ -13,6 +13,7 @@ import Direction exposing (Direction(..))
 import Mapchip exposing (Mapchip(..), Movility(..))
 
 import Dict exposing (Dict)
+import Random exposing (Seed)
 import Html exposing (Html)
 import Svg exposing (svg)
 
@@ -111,26 +112,30 @@ towards direction (x, y) =
         Left ->  (x - 1, y    )
         Right -> (x + 1, y    )
 
-enemyTurn: Stage -> Stage
-enemyTurn stage =
+enemyTurn: Seed -> Stage -> Stage
+enemyTurn seed stage =
   let
-    enemyAction: Coords -> Mapchip -> Dict Coords Mapchip -> Dict Coords Mapchip
-    enemyAction pos obj map =
+    enemyAction: Coords -> Mapchip -> (Dict Coords Mapchip, Seed) -> (Dict Coords Mapchip, Seed)
+    enemyAction pos obj (map, seed_) =
       case obj of
         Kiki direction ->
           case map |> Dict.get (pos |> towards direction) of
             Nothing ->
-              map |> moveObject pos direction
+              ( map |> moveObject pos direction
+              , seed_ )
             Just ClockwiseBlock ->
-              map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
+              ( map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
+              , seed_ )
             Just AntiClockwiseBlock ->
-              map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
-            _ -> map
-        _ -> map
+              ( map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
+              , seed_ )
+            _ -> (map, seed_)
+        _ -> (map, seed_)
 
-    newMap = stage.map
-      |> Dict.toList
-      |> List.foldr (\(p,o) -> enemyAction p o) stage.map
+    (newMap, seed__) =
+      stage.map
+        |> Dict.toList
+        |> List.foldr (\(p,o) -> enemyAction p o) (stage.map, seed)
   in
     { stage | map = newMap }
 

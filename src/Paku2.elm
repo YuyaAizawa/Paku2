@@ -4,6 +4,7 @@ import Direction exposing (Direction(..))
 import Stage exposing (Stage)
 
 import Dict exposing (Dict)
+import Random
 import Browser
 import Browser.Events exposing (onKeyDown, onKeyUp)
 import Task exposing (Task)
@@ -74,6 +75,7 @@ type Msg
   | Tick
   | Key Direction
   | ForceTick Direction
+  | EnemyTurn Int
   | StageSrcChanged String
   | LoadStage
 
@@ -84,7 +86,7 @@ update msg model =
         ( model, Cmd.none )
 
       Tick ->
-        ( enemyTurn model, Cmd.none )
+        ( model, requestEnemyTurn )
 
       Key direction ->
         let
@@ -99,18 +101,32 @@ update msg model =
           ( newMoldel, Cmd.none )
 
       ForceTick direction ->
-        (enemyTurn model, Task.perform Key (Task.succeed direction))
+        ( model
+        , Cmd.batch
+          [ requestEnemyTurn
+          , Task.perform Key (Task.succeed direction)
+          ]
+        )
+
+      EnemyTurn seed ->
+        ( enemyTurn (Random.initialSeed seed) model
+        , Cmd.none )
 
       StageSrcChanged src ->
-        ( { model | stageSrc = src }, Cmd.none )
+        ( { model | stageSrc = src }
+        , Cmd.none )
 
       LoadStage ->
-        ( { model | stage = Stage.fromString model.stageSrc }, Cmd.none )
+        ( { model | stage = Stage.fromString model.stageSrc }
+        , Cmd.none )
 
-enemyTurn {inputState, frame, stage, stageSrc} =
+requestEnemyTurn =
+  Random.generate EnemyTurn (Random.int Random.minInt Random.maxInt)
+
+enemyTurn seed {inputState, frame, stage, stageSrc} =
   { inputState = WaitForPalyerInput
   , frame = frame + 1
-  , stage = Stage.enemyTurn stage
+  , stage = Stage.enemyTurn seed stage
   , stageSrc = stageSrc
   }
 
