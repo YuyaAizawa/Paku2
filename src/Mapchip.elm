@@ -24,6 +24,7 @@ type Mapchip
    Kiki Direction
  | ClockwiseBlock
  | AntiClockwiseBlock
+ | CrackedBlock
 
 type Movility
  = Takable
@@ -48,6 +49,7 @@ movility mapchip =
     Kiki _ -> Movable
     ClockwiseBlock -> Movable
     AntiClockwiseBlock -> Movable
+    CrackedBlock -> Takable
 
 tofigureList: Mapchip -> List Figure
 tofigureList obj =
@@ -92,6 +94,8 @@ tofigureList obj =
     AntiClockwiseBlock ->
       ClockwiseBlock |> tofigureList |> mirrorX
 
+    CrackedBlock ->
+      [ Rectangle 1 1 14 14 gray lightYellow ]
 
 type Figure
  = Rectangle Int Int Int Int Color Color
@@ -185,6 +189,7 @@ type alias Color = String
 none = "none"
 
 red = "#FF0000"
+lightYellow = "#FFFF88"
 yellow = "#FFFF00"
 green = "#00FF00"
 blue = "#0000FF"

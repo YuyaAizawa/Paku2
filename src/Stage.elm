@@ -169,6 +169,7 @@ fromString src =
         "6" -> Just (Kiki Right)
         "," -> Just ClockwiseBlock
         ";" -> Just AntiClockwiseBlock
+        "C" -> Just CrackedBlock
         _ -> Nothing
     map =
       src

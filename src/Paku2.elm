@@ -49,7 +49,7 @@ initModel =
   , stageSrc =
     "WWWWWWWWW\n"++
     "W   ,   W\n"++
-    "W  ,  2,W\n"++
+    "W  , C2,W\n"++
     "W    ;  W\n"++
     "WG,     W\n"++
     "W B   ,GW\n"++
