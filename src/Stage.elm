@@ -44,8 +44,8 @@ type EntryType
 move: Direction -> Stage -> Stage
 move direction {map, playerPos, gems} =
   let
-    p1 = getCoords direction playerPos
-    p2 = getCoords direction p1
+    p1 = towards direction playerPos
+    p2 = towards direction p1
     o1 = Dict.get p1 map
     entryType =
       o1
@@ -65,14 +65,14 @@ move direction {map, playerPos, gems} =
 
     newMap =
       case entryType of
-        JustEntry -> map
+        JustEntry ->
+          map |> moveObject playerPos direction
         PushEntry o ->
           map
-            |> Dict.insert p2 o
-            |> Dict.remove p1
+            |> moveObject p1 direction
+            |> moveObject playerPos direction
         TakeEntry o ->
-          map
-            |> Dict.remove p1
+          map |> moveObject playerPos direction
         CannotEntry -> map
     newPlayerPos =
       case entryType of
@@ -88,7 +88,21 @@ move direction {map, playerPos, gems} =
   in
     {map = newMap, playerPos = newPlayerPos, gems = newGems}
 
-getCoords direction (x, y) =
+-- 上書きして移動
+moveObject: Coords -> Direction -> Dict Coords Mapchip -> Dict Coords Mapchip
+moveObject pos direction map =
+  let
+    newPos = pos |> towards direction
+  in
+    map
+      |> Dict.get pos
+      |> Maybe.map (\obj ->
+        map
+          |> Dict.remove pos
+          |> Dict.insert newPos obj)
+      |> Maybe.withDefault map
+
+towards direction (x, y) =
   case direction of
         Up ->    (x    , y - 1)
         Down ->  (x    , y + 1)
@@ -102,10 +116,10 @@ view: Stage -> Html msg
 view stage =
   let (px, py) = stage.playerPos in
   Svg.svg[]
-    (( stage.map
+    ( stage.map
       |> Dict.toList
       |> List.concatMap (\((x, y), mapchip) -> Mapchip.toSvg x y mapchip)
-    ) ++ [Mapchip.playerSvg px py])
+    )
 
 toString: Stage -> String
 toString stage =
@@ -143,4 +157,4 @@ fromString src =
         |> List.filter (\o -> o == Gem)
         |> List.length
   in
-    {map = map, playerPos = (1,1), gems = gems}
+    {map = map |> Dict.insert (1,1) Paku, playerPos = (1,1), gems = gems}
