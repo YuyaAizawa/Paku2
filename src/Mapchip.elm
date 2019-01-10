@@ -68,23 +68,16 @@ tofigureList obj =
       , Polyline [(8, 13), (8, 3), (3, 8), (13, 8), (8, 3)] red
       ]
     Kiki Down ->
-      [ Rectangle 1 1 14 14 black yellow
-      , Polyline [(8, 3), (8, 13), (3, 8), (13, 8), (8, 13)] red
-      ]
+      Kiki Up |> tofigureList |> rotate |> rotate
     Kiki Left ->
-      [ Rectangle 1 1 14 14 black yellow
-      , Polyline [(13, 8), (3, 8), (8, 3), (8, 13), (3, 8)] red
-      ]
+      Kiki Up |> tofigureList |> rotate |> rotate |> rotate
     Kiki Right ->
-      [ Rectangle 1 1 14 14 black yellow
-      , Polyline [(3, 8), (13, 8), (8, 3), (8, 13), (13, 8)] red
-      ]
+      Kiki Up |> tofigureList |> rotate
     ClockwiseBlock ->
       [ Rectangle 1 1 14 14 black yellow
       , Polyline [(11, 11), (5, 11), (5, 5), (11, 5), (8, 8)] red]
     AntiClockwiseBlock ->
-      [ Rectangle 1 1 14 14 black yellow
-      , Polyline [(5, 11), (11, 11), (11, 5), (5, 5), (8, 8)] red]
+      ClockwiseBlock |> tofigureList |> mirrorX
 
 type Figure
  = Rectangle Int Int Int Int Color Color
@@ -134,6 +127,44 @@ figureToSvg offsetX offsetY obj =
         , stroke s_
         , fill f_
         ][]
+
+mirrorX: List Figure -> List Figure
+mirrorX figures =
+  let
+    mirrorX_ figure =
+      case figure of
+        Rectangle x_ y_ w_ h_ s_ f_ ->
+          Rectangle (16 - x_) y_ w_ h_ s_ f_
+
+        Polygon pl s_ f_ ->
+          Polygon (pl |> List.map (\(x_, y_) -> (16 - x_, y_))) s_ f_
+
+        Polyline pl c_ ->
+          Polyline (pl |> List.map (\(x_, y_) -> (16 - x_, y_))) c_
+
+        Circle x_ y_ r_ s_ f_ ->
+          Circle (16 - x_) y_ r_ s_ f_
+  in
+    figures |> List.map mirrorX_
+
+rotate: List Figure -> List Figure
+rotate figures =
+  let
+    rotate_ figure =
+      case figure of
+        Rectangle x_ y_ w_ h_ s_ f_ ->
+          Rectangle (chipSize//2 - y_ - w_) x_ h_ w_ s_ f_
+
+        Polygon pl s_ f_ ->
+          Polygon (pl |> List.map (\(x_, y_) -> (chipSize//2 - y_ , x_))) s_ f_
+
+        Polyline pl c_ ->
+          Polyline (pl |> List.map (\(x_, y_) -> (chipSize//2 - y_, x_))) c_
+
+        Circle x_ y_ r_ s_ f_ ->
+          Circle (y_- chipSize//2) x_ r_ s_ f_
+  in
+    figures |> List.map rotate_
 
 type alias Color = String
 
