@@ -1,11 +1,12 @@
 module Stage exposing
   ( Stage
-  , testStage
+  , empty
   , isCleared
   , move
   , enemyTurn
   , view
   , toString
+  , fromString
   )
 
 import Dict exposing (Dict)
@@ -23,17 +24,11 @@ type alias Stage =
 
 type alias Coords = (Int, Int)
 
-testStage: Stage
-testStage =
-  let
-    src =
-      "WWWWWW\n"++
-      "W    W\n"++
-      "WG B W\n"++
-      "W   GW\n"++
-      "WWWWWW"
-  in
-    fromString src
+empty =
+  { map = Dict.empty
+  , playerPos = (0, 0)
+  , gems = 0
+  }
 
 
 isCleared: Stage -> Bool

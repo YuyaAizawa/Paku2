@@ -6,7 +6,7 @@ import Browser.Events exposing (onKeyDown, onKeyUp)
 import Task exposing (Task)
 import Html exposing (Html, text)
 import Html.Attributes as Attr
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Svg
 import Time
 import Json.Decode as Decode
@@ -31,6 +31,7 @@ type alias Model =
   { stage : Stage
   , inputState : InputState
   , frame : Int
+  , stageSrc : String
   }
 
 type InputState
@@ -39,11 +40,17 @@ type InputState
  | ForceEnemyTurn Direction
 
 init : () -> (Model, Cmd Msg)
-init _ = ( initModel, Cmd.none )
+init _ = ( initModel, Task.perform (\_ -> LoadStage) (Task.succeed ()))
 initModel =
-  { stage = Stage.testStage
+  { stage = Stage.empty
   , inputState = WaitForPalyerInput
   , frame = 0
+  , stageSrc =
+    "WWWWWWW\n"++
+    "W     W\n"++
+    "WG B  W\n"++
+    "W    GW\n"++
+    "WWWWWWW"
   }
 
 modelToString {stage, frame, inputState} =
@@ -64,7 +71,8 @@ type Msg
   | Tick
   | Key Direction
   | ForceTick Direction
-  | Reset
+  | StageSrcChanged String
+  | LoadStage
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -90,12 +98,17 @@ update msg model =
       ForceTick direction ->
         (enemyTurn model, Task.perform Key (Task.succeed direction))
 
-      Reset -> init ()
+      StageSrcChanged src ->
+        ( { model | stageSrc = src }, Cmd.none )
 
-enemyTurn {inputState, frame, stage} =
+      LoadStage ->
+        ( { model | stage = Stage.fromString model.stageSrc }, Cmd.none )
+
+enemyTurn {inputState, frame, stage, stageSrc} =
   { inputState = WaitForPalyerInput
   , frame = frame + 1
   , stage = Stage.enemyTurn stage
+  , stageSrc = stageSrc
   }
 
 
@@ -110,14 +123,24 @@ view model =
   then
     Html.div[]
      [ Html.p[][text "くりあ～"]
-     , Html.input[Attr.type_ "button", onClick Reset, Attr.value "リセット"][]
+     , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
      ]
   else
     Html.div[]
       [ Html.p[][text (modelToString model)]
       , Stage.view model.stage
-      ]
+      , stageEditor model.stageSrc]
 
+stageEditor content =
+  Html.div[]
+    [ Html.p[][text "すて～じえでぃっと"]
+    , Html.textarea
+      [ onInput  StageSrcChanged
+      , Attr.value content
+      , Attr.rows 12
+      , Attr.cols 12][]
+    , Html.button[onClick LoadStage][text "よみこみ"]
+    ]
 
 
 -- SUBSCRIPTION --
