@@ -129,7 +129,22 @@ view model =
     Html.div[]
       [ Html.p[][text (modelToString model)]
       , Stage.view model.stage
+      , buttons
       , stageEditor model.stageSrc]
+
+buttons =
+  Html.table[]
+    [ Html.tr[]
+      [ Html.td[][]
+      , Html.td[][Html.button [onClick (Key Up)][text "↑"]]
+      , Html.td[][]
+      ]
+    , Html.tr[]
+      [ Html.td[][Html.button [onClick (Key Left)][text "←"]]
+      , Html.td[][Html.button [onClick (Key Down)][text "↓"]]
+      , Html.td[][Html.button [onClick (Key Right)][text "→"]]
+      ]
+    ]
 
 stageEditor content =
   Html.div[]
