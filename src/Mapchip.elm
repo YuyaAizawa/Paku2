@@ -18,7 +18,10 @@ type Mapchip
  | Wall
  | Gem
  | Block
- | Kiki Direction
+ | {-
+      * direction : Direction = Kikiの向いている方向
+   -}
+   Kiki Direction
  | ClockwiseBlock
  | AntiClockwiseBlock
 
@@ -51,33 +54,44 @@ tofigureList obj =
   case obj of
     Paku ->
       [ Circle 8 8 6 black green ]
+
     Wall ->
       [ Rectangle 0 0 16 16 none lightGray
       , Rectangle 4 4 8 8 white none
       ]
+
     Gem ->
       [ Polygon [(0, 8), (8, 8), (8, 0)] none blue
-      , Polygon [(8, 0), (8, 8), (16, 8)] none darkblue
+      , Polygon [(8, 0), (8, 8), (16, 8)] none darkBlue
       , Polygon [(16, 8), (8, 8), (8, 16)] none blue
-      , Polygon [(8, 16), (8, 8), (0, 8)] none darkblue
+      , Polygon [(8, 16), (8, 8), (0, 8)] none darkBlue
       ]
+
     Block ->
       [ Rectangle 1 1 14 14 black yellow ]
+
     Kiki Up ->
       [ Rectangle 1 1 14 14 black yellow
       , Polyline [(8, 13), (8, 3), (3, 8), (13, 8), (8, 3)] red
       ]
+
     Kiki Down ->
       Kiki Up |> tofigureList |> rotate |> rotate
+
     Kiki Left ->
       Kiki Up |> tofigureList |> rotate |> rotate |> rotate
+
     Kiki Right ->
       Kiki Up |> tofigureList |> rotate
+
     ClockwiseBlock ->
       [ Rectangle 1 1 14 14 black yellow
-      , Polyline [(11, 11), (5, 11), (5, 5), (11, 5), (8, 8)] red]
+      , Polyline [(11, 11), (5, 11), (5, 5), (11, 5), (8, 8)] red
+      ]
+
     AntiClockwiseBlock ->
       ClockwiseBlock |> tofigureList |> mirrorX
+
 
 type Figure
  = Rectangle Int Int Int Int Color Color
@@ -134,7 +148,7 @@ mirrorX figures =
     mirrorX_ figure =
       case figure of
         Rectangle x_ y_ w_ h_ s_ f_ ->
-          Rectangle (16 - x_) y_ w_ h_ s_ f_
+          Rectangle (16 - (x_ + w_)) y_ w_ h_ s_ f_
 
         Polygon pl s_ f_ ->
           Polygon (pl |> List.map (\(x_, y_) -> (16 - x_, y_))) s_ f_
@@ -153,16 +167,16 @@ rotate figures =
     rotate_ figure =
       case figure of
         Rectangle x_ y_ w_ h_ s_ f_ ->
-          Rectangle (chipSize//2 - y_ - w_) x_ h_ w_ s_ f_
+          Rectangle (chipSize - (y_ + h_)) x_ h_ w_ s_ f_
 
         Polygon pl s_ f_ ->
-          Polygon (pl |> List.map (\(x_, y_) -> (chipSize//2 - y_ , x_))) s_ f_
+          Polygon (pl |> List.map (\(x_, y_) -> (chipSize - y_ , x_))) s_ f_
 
         Polyline pl c_ ->
-          Polyline (pl |> List.map (\(x_, y_) -> (chipSize//2 - y_, x_))) c_
+          Polyline (pl |> List.map (\(x_, y_) -> (chipSize - y_, x_))) c_
 
         Circle x_ y_ r_ s_ f_ ->
-          Circle (y_- chipSize//2) x_ r_ s_ f_
+          Circle (y_- chipSize) x_ r_ s_ f_
   in
     figures |> List.map rotate_
 
@@ -174,7 +188,7 @@ red = "#FF0000"
 yellow = "#FFFF00"
 green = "#00FF00"
 blue = "#0000FF"
-darkblue = "#000088"
+darkBlue = "#000088"
 
 white = "#FFFFFF"
 lightGray = "#AAAAAA"
