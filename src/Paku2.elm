@@ -1,5 +1,8 @@
 module Paku2 exposing (init)
 
+import Direction exposing (Direction(..))
+import Stage exposing (Stage)
+
 import Dict exposing (Dict)
 import Browser
 import Browser.Events exposing (onKeyDown, onKeyUp)
@@ -11,8 +14,6 @@ import Svg
 import Time
 import Json.Decode as Decode
 
-import Direction exposing (Direction(..))
-import Stage exposing (Stage)
 
 
 main =
@@ -46,11 +47,13 @@ initModel =
   , inputState = WaitForPalyerInput
   , frame = 0
   , stageSrc =
-    "WWWWWWW\n"++
-    "W     W\n"++
-    "WG B  W\n"++
-    "W    GW\n"++
-    "WWWWWWW"
+    "WWWWWWWWW\n"++
+    "W   ,   W\n"++
+    "W  ,  2,W\n"++
+    "W    ;  W\n"++
+    "WG,     W\n"++
+    "W B   ,GW\n"++
+    "WWWWWWWWW"
   }
 
 modelToString {stage, frame, inputState} =
@@ -165,12 +168,12 @@ subscriptions model =
   case model.inputState of
 
     ForceEnemyTurn direction ->
-      Time.every 100 (\_ -> ForceTick direction)
+      Time.every 50 (\_ -> ForceTick direction)
 
     _ ->
       Sub.batch
         [ onKeyDown keyDecoder
-        , Time.every 1000 (\_ -> Tick)
+        , Time.every 150 (\_ -> Tick)
         ]
 
 

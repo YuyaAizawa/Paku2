@@ -6,14 +6,21 @@ module Mapchip exposing
  , movility
  )
 
+import Direction exposing (Direction(..))
+
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+
+
 
 type Mapchip
  = Paku
  | Wall
  | Gem
  | Block
+ | Kiki Direction
+ | ClockwiseBlock
+ | AntiClockwiseBlock
 
 type Movility
  = Takable
@@ -35,12 +42,15 @@ movility mapchip =
     Wall -> Fixed
     Gem -> Takable
     Block -> Movable
+    Kiki _ -> Movable
+    ClockwiseBlock -> Movable
+    AntiClockwiseBlock -> Movable
 
 tofigureList: Mapchip -> List Figure
 tofigureList obj =
   case obj of
     Paku ->
-      [ Circle 8 8 6 black yellow ]
+      [ Circle 8 8 6 black green ]
     Wall ->
       [ Rectangle 0 0 16 16 none lightGray
       , Rectangle 4 4 8 8 white none
@@ -53,6 +63,28 @@ tofigureList obj =
       ]
     Block ->
       [ Rectangle 1 1 14 14 black yellow ]
+    Kiki Up ->
+      [ Rectangle 1 1 14 14 black yellow
+      , Polyline [(8, 13), (8, 3), (3, 8), (13, 8), (8, 3)] red
+      ]
+    Kiki Down ->
+      [ Rectangle 1 1 14 14 black yellow
+      , Polyline [(8, 3), (8, 13), (3, 8), (13, 8), (8, 13)] red
+      ]
+    Kiki Left ->
+      [ Rectangle 1 1 14 14 black yellow
+      , Polyline [(13, 8), (3, 8), (8, 3), (8, 13), (3, 8)] red
+      ]
+    Kiki Right ->
+      [ Rectangle 1 1 14 14 black yellow
+      , Polyline [(3, 8), (13, 8), (8, 3), (8, 13), (13, 8)] red
+      ]
+    ClockwiseBlock ->
+      [ Rectangle 1 1 14 14 black yellow
+      , Polyline [(11, 11), (5, 11), (5, 5), (11, 5), (8, 8)] red]
+    AntiClockwiseBlock ->
+      [ Rectangle 1 1 14 14 black yellow
+      , Polyline [(5, 11), (11, 11), (11, 5), (5, 5), (8, 8)] red]
 
 type Figure
  = Rectangle Int Int Int Int Color Color
@@ -84,7 +116,7 @@ figureToSvg offsetX offsetY obj =
         ][]
 
     Polyline pl c_ ->
-      polygon
+      polyline
         [points (
           pl
             |> List.map (\(x_, y_) -> String.fromInt (offsetX + x_) ++ "," ++ String.fromInt (offsetY + y_))

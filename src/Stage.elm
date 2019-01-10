@@ -9,12 +9,14 @@ module Stage exposing
   , fromString
   )
 
+import Direction exposing (Direction(..))
+import Mapchip exposing (Mapchip(..), Movility(..))
+
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Svg exposing (svg)
 
-import Direction exposing (Direction(..))
-import Mapchip exposing (Mapchip(..), Movility(..))
+
 
 type alias Stage =
   { map: Dict Coords Mapchip
@@ -110,7 +112,28 @@ towards direction (x, y) =
         Right -> (x + 1, y    )
 
 enemyTurn: Stage -> Stage
-enemyTurn stage = stage -- stab
+enemyTurn stage =
+  let
+    enemyAction: Coords -> Mapchip -> Dict Coords Mapchip -> Dict Coords Mapchip
+    enemyAction pos obj map =
+      case obj of
+        Kiki direction ->
+          case map |> Dict.get (pos |> towards direction) of
+            Nothing ->
+              map |> moveObject pos direction
+            Just ClockwiseBlock ->
+              map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
+            Just AntiClockwiseBlock ->
+              map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
+            _ -> map
+        _ -> map
+
+    newMap = stage.map
+      |> Dict.toList
+      |> List.foldr (\(p,o) -> enemyAction p o) stage.map
+  in
+    { stage | map = newMap }
+
 
 view: Stage -> Html msg
 view stage =
@@ -140,6 +163,12 @@ fromString src =
         "W" -> Just Wall
         "G" -> Just Gem
         "B" -> Just Block
+        "8" -> Just (Kiki Up)
+        "2" -> Just (Kiki Down)
+        "4" -> Just (Kiki Left)
+        "6" -> Just (Kiki Right)
+        "," -> Just ClockwiseBlock
+        ";" -> Just AntiClockwiseBlock
         _ -> Nothing
     map =
       src
