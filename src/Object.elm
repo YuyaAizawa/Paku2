@@ -1,5 +1,5 @@
-module Mapchip exposing
- ( Mapchip(..)
+module Object exposing
+ ( Object(..)
  , Movility(..)
  , chipSize
  , toSvg
@@ -13,7 +13,7 @@ import Svg.Attributes exposing (..)
 
 
 
-type Mapchip
+type Object
  = Paku
  | Wall
  | {-
@@ -30,6 +30,7 @@ type Mapchip
  | AntiClockwiseBlock
  | CrackedBlock
 
+
 type Movility
  = Takable
  | Movable
@@ -37,15 +38,15 @@ type Movility
 
 chipSize = 16
 
-toSvg: Int -> Int -> Mapchip -> List (Svg msg)
+toSvg: Int -> Int -> Object -> List (Svg msg)
 toSvg chipOffsetX chipOffsetY obj =
   obj
     |> tofigureList
     |> List.map (figureToSvg (chipOffsetX * chipSize) (chipOffsetY * chipSize))
 
-movility: Mapchip -> Movility
-movility mapchip =
-  case mapchip of
+movility: Object -> Movility
+movility obj =
+  case obj of
     Paku -> Fixed
     Wall -> Fixed
     Gem _ _ -> Takable
@@ -55,7 +56,7 @@ movility mapchip =
     AntiClockwiseBlock -> Movable
     CrackedBlock -> Takable
 
-tofigureList: Mapchip -> List Figure
+tofigureList: Object -> List Figure
 tofigureList obj =
   case obj of
     Paku ->

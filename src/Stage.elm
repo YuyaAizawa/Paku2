@@ -10,7 +10,7 @@ module Stage exposing
   )
 
 import Direction exposing (Direction(..))
-import Mapchip exposing (Mapchip(..), Movility(..))
+import Object exposing (Object(..), Movility(..))
 
 import Dict exposing (Dict)
 import Random exposing (Seed)
@@ -20,7 +20,7 @@ import Svg exposing (svg)
 
 
 type alias Stage =
-  { map: Dict Coords Mapchip
+  { map: Dict Coords Object
   , playerPos: Coords
   , gems: Int
   }
@@ -40,8 +40,8 @@ isCleared stage =
 
 type EntryType
  = JustEntry
- | PushEntry Mapchip
- | TakeEntry Mapchip
+ | PushEntry Object
+ | TakeEntry Object
  | CannotEntry
 
 move: Direction -> Stage -> Stage
@@ -53,7 +53,7 @@ move direction {map, playerPos, gems} =
     entryType =
       o1
         |> Maybe.map
-          ( \o -> case Mapchip.movility o of
+          ( \o -> case Object.movility o of
             Takable -> TakeEntry o
             Movable ->
               if map |> Dict.member p2
@@ -89,7 +89,7 @@ move direction {map, playerPos, gems} =
     {map = newMap, playerPos = newPlayerPos, gems = newGems}
 
 -- 上書きして移動
-moveObject: Coords -> Direction -> Dict Coords Mapchip -> Dict Coords Mapchip
+moveObject: Coords -> Direction -> Dict Coords Object -> Dict Coords Object
 moveObject pos direction map =
   let
     newPos = pos |> towards direction
@@ -112,40 +112,40 @@ towards direction (x, y) =
 enemyTurn: Seed -> Stage -> Stage
 enemyTurn seed stage =
   let
-    enemyAction: Coords -> Mapchip -> (Dict Coords Mapchip, Seed) -> (Dict Coords Mapchip, Seed)
-    enemyAction pos obj (map, seed_) =
-      case obj of
-        Kiki direction ->
-          let
-            map_ =
-              case map |> Dict.get (pos |> towards direction) of
-                Nothing ->
-                  map |> moveObject pos direction
-                Just ClockwiseBlock ->
-                  map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
-                Just AntiClockwiseBlock ->
-                  map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
-                _ -> map
-          in
-            ( map_, seed_ )
-
-        Gem frame 0 ->
-          let
-            ((nextFrame, nextRemaining), nextSeed) =
-              Random.step gemGenerator seed_
-          in
-            ( (map |> Dict.insert pos ( Gem nextFrame nextRemaining )), nextSeed )
-        Gem frame remaining ->
-          ( (map |> Dict.insert pos (Gem frame (remaining - 1))), seed_ )
-
-        _ -> (map, seed_)
-
-    (newMap, seed__) =
+    (newMap, _) =
       stage.map
         |> Dict.toList
         |> List.foldr (\(p,o) -> enemyAction p o) (stage.map, seed)
   in
     { stage | map = newMap }
+
+enemyAction: Coords -> Object -> (Dict Coords Object, Seed) -> (Dict Coords Object, Seed)
+enemyAction pos obj ( map, seed ) =
+  case obj of
+    Kiki direction ->
+      let
+        map_ =
+          case map |> Dict.get (pos |> towards direction) of
+            Nothing ->
+              map |> moveObject pos direction
+            Just ClockwiseBlock ->
+              map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
+            Just AntiClockwiseBlock ->
+              map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
+            _ -> map
+      in
+        ( map_, seed )
+
+    Gem frame 0 ->
+      let
+        ((nextFrame, nextRemaining), nextSeed) =
+          Random.step gemGenerator seed
+      in
+        ( (map |> Dict.insert pos ( Gem nextFrame nextRemaining )), nextSeed )
+    Gem frame remaining ->
+      ( (map |> Dict.insert pos (Gem frame (remaining - 1))), seed )
+
+    _ -> ( map, seed )
 
 gemGenerator: Random.Generator (Direction, Int)
 gemGenerator =
@@ -164,7 +164,7 @@ view stage =
   Svg.svg[]
     ( stage.map
       |> Dict.toList
-      |> List.concatMap (\((x, y), mapchip) -> Mapchip.toSvg x y mapchip)
+      |> List.concatMap (\((x, y), obj) -> Object.toSvg x y obj)
     )
 
 toString: Stage -> String
@@ -181,7 +181,7 @@ coordsToString (x, y) =
 fromString: String -> Stage
 fromString src =
   let
-    toMapchip c =
+    toObject c =
       case c of
         "W" -> Just Wall
         "G" -> Just (Gem Up 0)
@@ -200,7 +200,7 @@ fromString src =
         |> List.map (\s -> s |> String.split "")
         |> List.indexedMap (\y -> \l -> l
           |> List.indexedMap (\x -> \c ->
-            (toMapchip c |> Maybe.map(\m -> ((x, y), m))))
+            (toObject c |> Maybe.map(\m -> ((x, y), m))))
           |> List.filterMap (\m -> m))
         |> List.concatMap (\l -> l)
         |> Dict.fromList
