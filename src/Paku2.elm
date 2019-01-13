@@ -11,6 +11,7 @@ import Task exposing (Task)
 import Html exposing (Html, text)
 import Html.Attributes as Attr
 import Html.Events exposing (onClick, onInput, onMouseDown, onMouseUp)
+import Html.Events.Extra.Touch exposing (onStart, onEnd, onCancel)
 import Svg
 import Svg.Attributes
 import Time
@@ -186,15 +187,22 @@ buttons =
   Html.table[]
     [ Html.tr[]
       [ Html.td[][]
-      , Html.td[][Html.button [onMouseDown (ButtonPressed Up), onMouseUp ButtonReleased][text "↑"]]
+      , Html.td[][Html.button (onTouch Up)[text "↑"]]
       , Html.td[][]
       ]
     , Html.tr[]
-      [ Html.td[][Html.button [onMouseDown (ButtonPressed Left), onMouseUp ButtonReleased][text "←"]]
-      , Html.td[][Html.button [onMouseDown (ButtonPressed Down), onMouseUp ButtonReleased][text "↓"]]
-      , Html.td[][Html.button [onMouseDown (ButtonPressed Right), onMouseUp ButtonReleased][text "→"]]
+      [ Html.td[][Html.button (onTouch Left)[text "←"]]
+      , Html.td[][Html.button (onTouch Down)[text "↓"]]
+      , Html.td[][Html.button (onTouch Right)[text "→"]]
       ]
     ]
+
+onTouch direction =
+  [ onMouseDown (ButtonPressed direction)
+  , onMouseUp (ButtonReleased)
+  , onStart (\e -> ButtonPressed direction)
+  , onEnd (\e -> ButtonReleased)
+  , onCancel (\e -> ButtonReleased)]
 
 stageEditor content =
   Html.div[]
