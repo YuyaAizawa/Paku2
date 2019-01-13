@@ -1,7 +1,7 @@
 module Paku2 exposing (init)
 
 import Direction exposing (Direction(..))
-import Stage exposing (Stage)
+import Stage exposing (Stage, GameState(..))
 
 import Dict exposing (Dict)
 import Random
@@ -49,7 +49,7 @@ initModel =
   , frame = 0
   , stageSrc =
     "WWWWWWWWW\n"++
-    "W   ,   W\n"++
+    "W   ,  +W\n"++
     "W  , C2,W\n"++
     "W    ;  W\n"++
     "WG,     W\n"++
@@ -89,16 +89,20 @@ update msg model =
         ( model, requestEnemyTurn )
 
       Key direction ->
-        let
-          newMoldel =
-            if model.inputState == WaitForEnemyTurn
-            then { model | inputState = ForceEnemyTurn direction }
-            else { model
-              | stage = model.stage
-                |> Stage.move direction
-              , inputState = WaitForEnemyTurn }
-        in
-          ( newMoldel, Cmd.none )
+        if Stage.gameState model.stage /= Playing
+        then
+          ( model, Cmd.none )
+        else
+          let
+            newMoldel =
+              if model.inputState == WaitForEnemyTurn
+              then { model | inputState = ForceEnemyTurn direction }
+              else { model
+                | stage = model.stage
+                  |> Stage.move direction
+                , inputState = WaitForEnemyTurn }
+          in
+            ( newMoldel, Cmd.none )
 
       ForceTick direction ->
         ( model
@@ -138,18 +142,23 @@ enemyTurn seed {inputState, frame, stage, stageSrc} =
 
 view : Model -> Html Msg
 view model =
-  if Stage.isCleared model.stage
-  then
-    Html.div[]
-     [ Html.p[][text "くりあ～"]
-     , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
-     ]
-  else
-    Html.div[]
-      [ Html.p[][text (modelToString model)]
-      , Stage.view model.stage
-      , buttons
-      , stageEditor model.stageSrc]
+  case model.stage |> Stage.gameState of
+    Playing ->
+      Html.div[]
+        [ Html.p[][text (modelToString model)]
+        , Stage.view model.stage
+        , buttons
+        , stageEditor model.stageSrc]
+    Clear ->
+      Html.div[]
+       [ Html.p[][text "くりあ～"]
+       , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
+       ]
+    GameOver ->
+      Html.div[]
+       [ Html.p[][text "ミス"]
+       , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
+       ]
 
 buttons =
   Html.table[]

@@ -1,8 +1,8 @@
 module Object exposing
  ( Object(..)
- , Movility(..)
+ , ContactReaction(..)
  , toSvg
- , movility
+ , reaction
  )
 
 import Direction exposing (Direction(..))
@@ -28,12 +28,17 @@ type Object
  | ClockwiseBlock
  | AntiClockwiseBlock
  | CrackedBlock
+ | {-
+      * frame : Int アニメーション
+   -}
+   Spinner Int
 
 
-type Movility
+type ContactReaction
  = Takable
  | Movable
  | Fixed
+ | Aggressive
 
 chipSize = 16
 
@@ -44,8 +49,8 @@ toSvg chipOffsetX chipOffsetY obj =
     |> List.map figureToSvg
     |> translate (chipOffsetX * chipSize) (chipOffsetY * chipSize)
 
-movility: Object -> Movility
-movility obj =
+reaction: Object -> ContactReaction
+reaction obj =
   case obj of
     Paku -> Fixed
     Wall -> Fixed
@@ -55,6 +60,8 @@ movility obj =
     ClockwiseBlock -> Movable
     AntiClockwiseBlock -> Movable
     CrackedBlock -> Takable
+    Spinner _ -> Aggressive
+
 
 tofigureList: Object -> List Figure
 tofigureList obj =
@@ -104,6 +111,18 @@ tofigureList obj =
 
     CrackedBlock ->
       [ Rectangle 1 1 14 14 gray lightYellow ]
+
+    Spinner i ->
+      [ Polygon
+        [ ( 5,  1), (11,  1), (11,  3), ( 9,  3), (9, 7), (13,  7), (13,  5)
+        , (15,  5), (15, 11), (13, 11), (13,  9), (9, 9), ( 9, 13), (11, 13)
+        , (11, 15), ( 5, 15), ( 5, 13), ( 7, 13), (7, 9), ( 3,  9), ( 3, 11)
+        , ( 1, 11), ( 1,  5), ( 3,  5), ( 3,  7), (7, 7), ( 7,  3), ( 5,  3)
+        ] none black
+      , Circle 8 8 3 black magenta
+      ]
+        |> Rotate (i * 30)
+        |> List.singleton
 
 type Figure
  = Rectangle Int Int Int Int Color Color
@@ -183,6 +202,7 @@ green = "#00FF00"
 blue = "#0000FF"
 lightBlue = "#8888FF"
 darkBlue = "#000088"
+magenta = "#FF00FF"
 
 white = "#FFFFFF"
 lightGray = "#AAAAAA"
