@@ -10,8 +10,9 @@ import Browser.Events exposing (onKeyDown, onKeyUp)
 import Task exposing (Task)
 import Html exposing (Html, text)
 import Html.Attributes as Attr
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick, onInput, onMouseDown, onMouseUp)
 import Svg
+import Svg.Attributes
 import Time
 import Json.Decode as Decode
 
@@ -34,6 +35,7 @@ type alias Model =
   , inputState : InputState
   , frame : Int
   , stageSrc : String
+  , downButton : Maybe Direction
   }
 
 type InputState
@@ -55,6 +57,7 @@ initModel =
     "WG,     W\n"++
     "W B   ,GW\n"++
     "WWWWWWWWW"
+  , downButton = Nothing
   }
 
 modelToString {stage, frame, inputState} =
@@ -78,6 +81,8 @@ type Msg
   | EnemyTurn Int
   | StageSrcChanged String
   | LoadStage
+  | ButtonPressed Direction
+  | ButtonReleased
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -85,8 +90,18 @@ update msg model =
       Nop ->
         ( model, Cmd.none )
 
-      Tick ->
-        ( model, requestEnemyTurn )
+      Tick -> 
+        if Stage.gameState model.stage /= Playing
+        then
+          ( model, Cmd.none )
+        else
+          case model.downButton of
+            Nothing ->
+              ( model, requestEnemyTurn )
+            Just direction ->
+              ( { model | stage = model.stage |> Stage.move direction }
+              , requestEnemyTurn
+              )
 
       Key direction ->
         if Stage.gameState model.stage /= Playing
@@ -94,15 +109,15 @@ update msg model =
           ( model, Cmd.none )
         else
           let
-            newMoldel =
+            newModel =
               if model.inputState == WaitForEnemyTurn
-              then { model | inputState = ForceEnemyTurn direction }
+              then { model | inputState = ForceEnemyTurn direction}
               else { model
                 | stage = model.stage
                   |> Stage.move direction
                 , inputState = WaitForEnemyTurn }
           in
-            ( newMoldel, Cmd.none )
+            ( newModel, Cmd.none )
 
       ForceTick direction ->
         ( model
@@ -124,17 +139,24 @@ update msg model =
         ( { model | stage = Stage.fromString model.stageSrc }
         , Cmd.none )
 
+      ButtonPressed direction ->
+        ( { model | downButton = Just direction }
+        , Task.perform Key (Task.succeed direction))
+
+      ButtonReleased ->
+        ( { model | downButton = Nothing }
+        , Cmd.none )
+
 requestEnemyTurn =
   Random.generate EnemyTurn (Random.int Random.minInt Random.maxInt)
 
-enemyTurn seed {inputState, frame, stage, stageSrc} =
+enemyTurn seed {inputState, frame, stage, stageSrc, downButton} =
   { inputState = WaitForPalyerInput
   , frame = frame + 1
   , stage = Stage.enemyTurn seed stage
   , stageSrc = stageSrc
+  , downButton = downButton
   }
-
-
 
 
 
@@ -164,13 +186,13 @@ buttons =
   Html.table[]
     [ Html.tr[]
       [ Html.td[][]
-      , Html.td[][Html.button [onClick (Key Up)][text "↑"]]
+      , Html.td[][Html.button [onMouseDown (ButtonPressed Up), onMouseUp ButtonReleased][text "↑"]]
       , Html.td[][]
       ]
     , Html.tr[]
-      [ Html.td[][Html.button [onClick (Key Left)][text "←"]]
-      , Html.td[][Html.button [onClick (Key Down)][text "↓"]]
-      , Html.td[][Html.button [onClick (Key Right)][text "→"]]
+      [ Html.td[][Html.button [onMouseDown (ButtonPressed Left), onMouseUp ButtonReleased][text "←"]]
+      , Html.td[][Html.button [onMouseDown (ButtonPressed Down), onMouseUp ButtonReleased][text "↓"]]
+      , Html.td[][Html.button [onMouseDown (ButtonPressed Right), onMouseUp ButtonReleased][text "→"]]
       ]
     ]
 

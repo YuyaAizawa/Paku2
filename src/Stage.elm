@@ -17,11 +17,13 @@ import Dict exposing (Dict)
 import Random exposing (Seed)
 import Html exposing (Html)
 import Svg exposing (svg)
+import Svg.Attributes exposing (viewBox)
 
 
 
 type alias Stage =
   { map: Dict Coords Object
+  , size: (Int, Int)
   , playerPos: Coords
   , miss: Bool
   , gems: Int
@@ -31,6 +33,7 @@ type alias Coords = (Int, Int)
 
 empty =
   { map = Dict.empty
+  , size = (0, 0)
   , playerPos = (0, 0)
   , miss = False
   , gems = 0
@@ -57,7 +60,7 @@ type EntryType
  | Damaged
 
 move: Direction -> Stage -> Stage
-move direction {map, playerPos, miss, gems} =
+move direction {map, size, playerPos, miss, gems} =
   let
     p1 = towards direction playerPos
     p2 = towards direction p1
@@ -106,6 +109,7 @@ move direction {map, playerPos, miss, gems} =
 
   in
     { map = newMap
+    , size = size
     , playerPos = newPlayerPos
     , miss = newMiss
     , gems = newGems}
@@ -230,7 +234,8 @@ randomDirecction =
 view: Stage -> Html msg
 view stage =
   let (px, py) = stage.playerPos in
-  Svg.svg[]
+  let (w, h) = stage.size in
+  Svg.svg []
     ( stage.map
       |> Dict.toList
       |> List.map (\((x, y), obj) -> obj |> Object.toSvg x y)
@@ -281,8 +286,24 @@ fromString src =
           Gem _ _ -> True
           _ -> False)
         |> List.length
+    w =
+      map
+        |> Dict.keys
+        |> List.map (\(x, _) -> x)
+        |> List.maximum
+        |> Maybe.map (\n -> n + 1)
+        |> Maybe.withDefault 8
+    h =
+      map
+        |> Dict.keys
+        |> List.map (\(_, y) -> y)
+        |> List.maximum
+        |> Maybe.map (\n -> n + 1)
+        |> Maybe.withDefault 6
+
   in
     { map = map |> Dict.insert (1,1) Paku
+    , size = (w, h)
     , playerPos = (1,1)
     , miss = False
     , gems = gems}

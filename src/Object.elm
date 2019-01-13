@@ -1,6 +1,7 @@
 module Object exposing
  ( Object(..)
  , ContactReaction(..)
+ , chipSize
  , toSvg
  , reaction
  )
