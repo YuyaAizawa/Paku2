@@ -164,7 +164,7 @@ view stage =
   Svg.svg[]
     ( stage.map
       |> Dict.toList
-      |> List.concatMap (\((x, y), obj) -> Object.toSvg x y obj)
+      |> List.map (\((x, y), obj) -> obj |> Object.toSvg x y)
     )
 
 toString: Stage -> String
