@@ -91,7 +91,7 @@ update msg model =
       Nop ->
         ( model, Cmd.none )
 
-      Tick -> 
+      Tick ->
         if Stage.gameState model.stage /= Playing
         then
           ( model, Cmd.none )
@@ -137,7 +137,10 @@ update msg model =
         , Cmd.none )
 
       LoadStage ->
-        ( { model | stage = Stage.fromString model.stageSrc }
+        ( { model
+          | stage = Stage.fromString model.stageSrc
+          , downButton = Nothing
+          }
         , Cmd.none )
 
       ButtonPressed direction ->
