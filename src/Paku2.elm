@@ -51,13 +51,13 @@ initModel =
   , inputState = WaitForPalyerInput
   , frame = 0
   , stageSrc =
-    "WWWWWWWWW\n"++
-    "W   ,  +W\n"++
-    "W  , C2,W\n"++
-    "W    ;  W\n"++
-    "WG,     W\n"++
-    "W B   ,GW\n"++
-    "WWWWWWWWW"
+    "WWWWWWWWWW\n"++
+    "W    ,  +W\n"++
+    "W   , C2,W\n"++
+    "W     ;  W\n"++
+    "WG ,     W\n"++
+    "W < B >,GW\n"++
+    "WWWWWWWWWW"
   , downButton = Nothing
   }
 

@@ -23,7 +23,7 @@ type Object
    Gem Direction Int
  | Block
  | {-
-      * direction : Direction = Kikiの向いている方向
+      * direction : Direction = 向いている方向
    -}
    Kiki Direction
  | ClockwiseBlock
@@ -33,6 +33,11 @@ type Object
       * frame : Int アニメーション
    -}
    Spinner Int
+ | {-
+      * direction : Direction = 向いている方向
+      * wait : Int = 移動までの待ち時間
+   -}
+   Pusher Direction Int
 
 
 type ContactReaction
@@ -62,6 +67,7 @@ reaction obj =
     AntiClockwiseBlock -> Movable
     CrackedBlock -> Takable
     Spinner _ -> Aggressive
+    Pusher _ _ -> Movable
 
 
 tofigureList: Object -> List Figure
@@ -124,6 +130,18 @@ tofigureList obj =
       ]
         |> Rotate (i * 30)
         |> List.singleton
+
+    Pusher Up _ ->
+      [ Rectangle 2 7 12 6 red yellow
+      , Polygon [(8, 2), (14, 7), (2, 7)] none red
+      , Rectangle 6 7 4 6 none red
+      ]
+    Pusher Down _ ->
+      [ Pusher Up 0 |> tofigureList |> Rotate 180 ]
+    Pusher Left _ ->
+      [ Pusher Up 0 |> tofigureList |> Rotate 270 ]
+    Pusher Right _ ->
+      [ Pusher Up 0 |> tofigureList |> Rotate 90 ]
 
 type Figure
  = Rectangle Int Int Int Int Color Color

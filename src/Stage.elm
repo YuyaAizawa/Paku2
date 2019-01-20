@@ -59,6 +59,8 @@ type EntryType
  | CannotEntry
  | Damaged
 
+
+
 move: Direction -> Stage -> Stage
 move direction {map, size, playerPos, miss, gems} =
   let
@@ -195,6 +197,48 @@ enemyAction pos obj playerPos ( map, damaged, seed ) =
       in
         ( nextMap, nextDamaged, nextSeed )
 
+    Pusher d 0 ->
+      let
+        pusherWait = 6
+        p1 = towards d pos
+        p2 = towards d p1
+        o1 = Dict.get p1 map
+        entryType =
+          o1
+            |> Maybe.map
+              ( \o -> case Object.reaction o of
+                Movable ->
+                  if map |> Dict.member p2
+                  then CannotEntry
+                  else PushEntry o
+                Fixed -> CannotEntry
+                _ -> CannotEntry
+              )
+            |> Maybe.withDefault JustEntry
+
+        newMap =
+          case entryType of
+            JustEntry ->
+              map
+                |> Dict.remove pos
+                |> Dict.insert p1 (Pusher d pusherWait)
+            PushEntry o ->
+              map
+                |> moveObject p1 d
+                |> Dict.insert pos (Pusher (d |> Direction.mirror) pusherWait)
+            CannotEntry ->
+              map
+                |> Dict.insert pos (Pusher (d |> Direction.mirror) pusherWait)
+            _ -> map
+      in
+        ( newMap, damaged, seed )
+
+    Pusher d n ->
+      let
+        newMap = map |> Dict.insert pos (Pusher d (n-1))
+      in
+        ( newMap, damaged, seed )
+
     _ -> ( map, damaged, seed )
 
 gemGenerator: Random.Generator (Direction, Int)
@@ -268,6 +312,10 @@ fromString src =
         ";" -> Just AntiClockwiseBlock
         "C" -> Just CrackedBlock
         "+" -> Just (Spinner 0)
+        "^" -> Just (Pusher Up 0)
+        "v" -> Just (Pusher Down 0)
+        "<" -> Just (Pusher Left 0)
+        ">" -> Just (Pusher Right 0)
         _ -> Nothing
     map =
       src

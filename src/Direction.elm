@@ -19,3 +19,10 @@ rotateAntiClockwise direction =
     Down -> Right
     Left -> Down
     Right -> Up
+
+mirror direction =
+  case direction of
+    Up -> Down
+    Down -> Up
+    Left -> Right
+    Right -> Left
