@@ -36,7 +36,6 @@ type alias Model =
   , inputState : InputState
   , frame : Int
   , stageSrc : String
-  , downButton : Maybe Direction
   }
 
 type InputState
@@ -58,7 +57,6 @@ initModel =
     "WG ,     W\n"++
     "W < B >,GW\n"++
     "WWWWWWWWWW"
-  , downButton = Nothing
   }
 
 modelToString {stage, frame, inputState} =
@@ -82,8 +80,6 @@ type Msg
   | EnemyTurn Int
   | StageSrcChanged String
   | LoadStage
-  | ButtonPressed Direction
-  | ButtonReleased
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -96,13 +92,7 @@ update msg model =
         then
           ( model, Cmd.none )
         else
-          case model.downButton of
-            Nothing ->
-              ( model, requestEnemyTurn )
-            Just direction ->
-              ( { model | stage = model.stage |> Stage.move direction }
-              , requestEnemyTurn
-              )
+          ( model, requestEnemyTurn )
 
       Key direction ->
         if Stage.gameState model.stage /= Playing
@@ -137,29 +127,18 @@ update msg model =
         , Cmd.none )
 
       LoadStage ->
-        ( { model
-          | stage = Stage.fromString model.stageSrc
-          , downButton = Nothing
-          }
+        ( { model | stage = Stage.fromString model.stageSrc }
         , Cmd.none )
 
-      ButtonPressed direction ->
-        ( { model | downButton = Just direction }
-        , Task.perform Key (Task.succeed direction))
-
-      ButtonReleased ->
-        ( { model | downButton = Nothing }
-        , Cmd.none )
 
 requestEnemyTurn =
   Random.generate EnemyTurn (Random.int Random.minInt Random.maxInt)
 
-enemyTurn seed {inputState, frame, stage, stageSrc, downButton} =
+enemyTurn seed {inputState, frame, stage, stageSrc} =
   { inputState = WaitForPalyerInput
   , frame = frame + 1
   , stage = Stage.enemyTurn seed stage
   , stageSrc = stageSrc
-  , downButton = downButton
   }
 
 
@@ -201,11 +180,9 @@ buttons =
     ]
 
 onTouch direction =
-  [ onMouseDown (ButtonPressed direction)
-  , onMouseUp (ButtonReleased)
-  , onStart (\e -> ButtonPressed direction)
-  , onEnd (\e -> ButtonReleased)
-  , onCancel (\e -> ButtonReleased)]
+  [ onMouseDown (Key direction)
+  , onStart (\e -> Key direction)
+  ]
 
 stageEditor content =
   Html.div[]
