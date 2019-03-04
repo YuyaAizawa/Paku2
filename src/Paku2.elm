@@ -36,7 +36,6 @@ type alias Model =
   , inputState : InputState
   , frame : Int
   , stageSrc : String
-  , downButton : Maybe Direction
   }
 
 type InputState
@@ -59,7 +58,6 @@ initModel =
     "WG ,     W\n"++
     "W < B >,GW\n"++
     "WWWWWWWWWW"
-  , downButton = Nothing
   }
 
 modelToString {stage, frame, inputState} =
@@ -84,8 +82,6 @@ type Msg
   | EnemyTurn Int
   | StageSrcChanged String
   | LoadStage
-  | ButtonPressed Direction
-  | ButtonReleased
   | AnimationFinished
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -99,13 +95,7 @@ update msg model =
         then
           ( model, Cmd.none )
         else
-          case model.downButton of
-            Nothing ->
-              ( model, requestEnemyTurn )
-            Just direction ->
-              ( { model | stage = model.stage |> Stage.move direction }
-              , requestEnemyTurn
-              )
+          ( model, requestEnemyTurn )
 
       Key direction ->
         if Stage.gameState model.stage /= Playing
@@ -144,19 +134,9 @@ update msg model =
         , Cmd.none )
 
       LoadStage ->
-        ( { model
-          | stage = Stage.fromString model.stageSrc
-          , downButton = Nothing
-          }
+        ( { model | stage = Stage.fromString model.stageSrc }
         , Cmd.none )
 
-      ButtonPressed direction ->
-        ( { model | downButton = Just direction }
-        , Task.perform Key (Task.succeed direction))
-
-      ButtonReleased ->
-        ( { model | downButton = Nothing }
-        , Cmd.none )
 
       AnimationFinished ->
         ( { model | inputState = WaitForPalyerInput }
@@ -166,7 +146,7 @@ update msg model =
 requestEnemyTurn =
   Random.generate EnemyTurn (Random.int Random.minInt Random.maxInt)
 
-enemyTurn seed {inputState, frame, stage, stageSrc, downButton} =
+enemyTurn seed {inputState, frame, stage, stageSrc} =
   let nextStage = Stage.enemyTurn seed stage in
   { inputState =
       if (nextStage |> Stage.gameState) == GameOver
@@ -175,7 +155,6 @@ enemyTurn seed {inputState, frame, stage, stageSrc, downButton} =
   , frame = frame + 1
   , stage = nextStage
   , stageSrc = stageSrc
-  , downButton = downButton
   }
 
 
@@ -217,17 +196,20 @@ buttons =
       ]
     , Html.tr[]
       [ Html.td[][Html.button (onTouch Left)[text "←"]]
-      , Html.td[][Html.button (onTouch Down)[text "↓"]]
+      , Html.td[][]
       , Html.td[][Html.button (onTouch Right)[text "→"]]
+      ]
+    , Html.tr[]
+      [ Html.td[][]
+      , Html.td[][Html.button (onTouch Down)[text "↓"]]
+      , Html.td[][]
       ]
     ]
 
 onTouch direction =
-  [ onMouseDown (ButtonPressed direction)
-  , onMouseUp (ButtonReleased)
-  , onStart (\e -> ButtonPressed direction)
-  , onEnd (\e -> ButtonReleased)
-  , onCancel (\e -> ButtonReleased)]
+  [ onMouseDown (Key direction)
+  , onStart (\e -> Key direction)
+  ]
 
 stageEditor content =
   Html.div[]
