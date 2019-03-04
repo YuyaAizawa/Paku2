@@ -1,0 +1,12 @@
+.fade-out {
+	animation: fade;
+	animation-duration: 0.3s;
+	animation-timing-function: linear;
+	animation-direction: reverse;
+	animation-fill-mode: forwards;
+}
+
+@keyframes fade {
+	0% {opacity: 0;}
+	100% {opacity: 1;}
+}
