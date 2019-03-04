@@ -282,7 +282,10 @@ view stage =
   Svg.svg []
     ( stage.map
       |> Dict.toList
-      |> List.map (\((x, y), obj) -> obj |> Object.toSvg x y)
+      |> List.map (\((x, y), obj) ->
+        if obj == Paku && gameState stage == GameOver
+        then obj |> Object.toSvg x y |> Object.fadeOut
+        else obj |> Object.toSvg x y)
     )
 
 toString: Stage -> String

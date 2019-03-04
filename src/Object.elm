@@ -4,6 +4,7 @@ module Object exposing
  , chipSize
  , toSvg
  , reaction
+ , fadeOut
  )
 
 import Direction exposing (Direction(..))
@@ -209,6 +210,13 @@ translate x y contents =
   Svg.g
     [ transform <| "translate(" ++ String.fromInt x ++ ", " ++ String.fromInt y ++ ")" ]
     contents
+
+fadeOut: Svg msg -> Svg msg
+fadeOut content =
+  Svg.g
+    [ class "fade-out" ]
+    [ content ]
+
 
 type alias Color = String
 
