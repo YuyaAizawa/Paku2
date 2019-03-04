@@ -43,6 +43,7 @@ type InputState
  = WaitForPalyerInput
  | WaitForEnemyTurn
  | ForceEnemyTurn Direction
+ | WaitForAnimation
 
 init : () -> (Model, Cmd Msg)
 init _ = ( initModel, Task.perform (\_ -> LoadStage) (Task.succeed ()))
@@ -69,6 +70,7 @@ inputStateToString inputState =
     WaitForPalyerInput -> "WaitForPalyerInput"
     WaitForEnemyTurn -> "WaitForEnemyTurn"
     ForceEnemyTurn direction -> "ForceEnemyTurn"
+    WaitForAnimation -> "WaitForAnimation"
 
 
 
@@ -84,6 +86,7 @@ type Msg
   | LoadStage
   | ButtonPressed Direction
   | ButtonReleased
+  | AnimationFinished
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -113,10 +116,14 @@ update msg model =
             newModel =
               if model.inputState == WaitForEnemyTurn
               then { model | inputState = ForceEnemyTurn direction}
-              else { model
-                | stage = model.stage
-                  |> Stage.move direction
-                , inputState = WaitForEnemyTurn }
+              else
+                let nextStage = Stage.move direction model.stage in
+                { model
+                | stage = nextStage
+                , inputState =
+                  if Stage.gameState nextStage == GameOver
+                  then WaitForAnimation
+                  else WaitForEnemyTurn }
           in
             ( newModel, Cmd.none )
 
@@ -151,13 +158,22 @@ update msg model =
         ( { model | downButton = Nothing }
         , Cmd.none )
 
+      AnimationFinished ->
+        ( { model | inputState = WaitForPalyerInput }
+        , Cmd.none
+        )
+
 requestEnemyTurn =
   Random.generate EnemyTurn (Random.int Random.minInt Random.maxInt)
 
 enemyTurn seed {inputState, frame, stage, stageSrc, downButton} =
-  { inputState = WaitForPalyerInput
+  let nextStage = Stage.enemyTurn seed stage in
+  { inputState =
+      if (nextStage |> Stage.gameState) == GameOver
+      then WaitForAnimation
+      else WaitForPalyerInput
   , frame = frame + 1
-  , stage = Stage.enemyTurn seed stage
+  , stage = nextStage
   , stageSrc = stageSrc
   , downButton = downButton
   }
@@ -168,23 +184,29 @@ enemyTurn seed {inputState, frame, stage, stageSrc, downButton} =
 
 view : Model -> Html Msg
 view model =
-  case model.stage |> Stage.gameState of
-    Playing ->
-      Html.div[]
-        [ Html.p[][text (modelToString model)]
-        , Stage.view model.stage
-        , buttons
-        , stageEditor model.stageSrc]
-    Clear ->
-      Html.div[]
-       [ Html.p[][text "くりあ～"]
-       , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
-       ]
-    GameOver ->
-      Html.div[]
-       [ Html.p[][text "ミス"]
-       , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
-       ]
+  if model.inputState == WaitForAnimation
+  then playingView model
+  else
+    case model.stage |> Stage.gameState of
+      Playing ->
+       playingView model
+      Clear ->
+        Html.div[]
+         [ Html.p[][text "くりあ～"]
+         , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
+         ]
+      GameOver ->
+        Html.div[]
+         [ Html.p[][text "ミス"]
+         , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
+         ]
+
+playingView model =
+  Html.div[]
+    [ Html.p[][text (modelToString model)]
+    , Stage.view model.stage
+    , buttons
+    , stageEditor model.stageSrc]
 
 buttons =
   Html.table[]
@@ -227,6 +249,9 @@ subscriptions model =
 
     ForceEnemyTurn direction ->
       Time.every 50 (\_ -> ForceTick direction)
+
+    WaitForAnimation ->
+      Time.every 500 (\_ -> AnimationFinished)
 
     _ ->
       Sub.batch
