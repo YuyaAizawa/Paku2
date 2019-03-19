@@ -28,21 +28,21 @@
   <title>ぱくぱく</title>
 </head>
 <body>
-  <h1>ぱくぱく</h1>
+  <h1>すて～じえでぃた</h1>
   <div id="elm-area"></div>
   <p>code:<a href="https://github.com/YuyaAizawa/Paku2">github.com/YuyaAizawa/Paku2</a></p>
-  <script src="js/Paku2.js"></script>
+  <script src="js/StageEditor.js"></script>
   <script>
     var param = GetQueryString()
     if (param == null) {
       param = new Object()
-      param['stage'] = decodeURIComponent("WWWWWWWWWW%0d%0aW%20%20%20%20%2c%20%20%2bW%0d%0aW%20%20%20%2c%20C2%2cW%0d%0aW%20%20%20%20%20%3b%20%20W%0d%0aWG%20%2c%20%20%20%20%20W%0d%0aW%20%3c%20B%20%3e%2cGW%0d%0aWWWWWWWWWW")
+      param['stage'] = "WWWWWWWWWW%0d%0aW%20%20%20%20%2c%20%20%2bW%0d%0aW%20%20%20%2c%20C2%2cW%0d%0aW%20%20%20%20%20%3b%20%20W%0d%0aWG%20%2c%20%20%20%20%20W%0d%0aW%20%3c%20B%20%3e%2cGW%0d%0aWWWWWWWWWW"
     }
-    const app = Elm.Paku2.init({ node: document.getElementById("elm-area"), flags: { stage: param['stage'] }});
+    const app = Elm.StageEditor.init({ node: document.getElementById("elm-area"), flags: { stage: param['stage'] }});
 
     app.ports.encodeUri.subscribe(function(str) {
       app.ports.onUriEncoded.send(encodeURIComponent(str));
-    });
+    })
 
   </script>
 </body>
