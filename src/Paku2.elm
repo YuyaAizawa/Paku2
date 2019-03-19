@@ -2,6 +2,7 @@ module Paku2 exposing (init)
 
 import Direction exposing (Direction(..))
 import Stage exposing (Stage, GameState(..))
+import Ports exposing (encodeUri, onUriEncoded, decodeUri, onUriDecoded)
 
 import Dict exposing (Dict)
 import Random
@@ -16,7 +17,6 @@ import Svg
 import Svg.Attributes
 import Time
 import Json.Decode as Decode
-
 
 
 main =
@@ -36,6 +36,7 @@ type alias Model =
   , inputState : InputState
   , frame : Int
   , stageSrc : String
+  , stageEncoded : String
   }
 
 type InputState
@@ -44,31 +45,25 @@ type InputState
  | ForceEnemyTurn Direction
  | WaitForAnimation
 
-init : () -> (Model, Cmd Msg)
-init _ = ( initModel, Task.perform (\_ -> LoadStage) (Task.succeed ()))
-initModel =
-  { stage = Stage.empty
+type alias Flags =
+  { stage : String }
+
+init : Flags -> (Model, Cmd Msg)
+init flags = ( initModel flags, encodeUri flags.stage )
+initModel flags =
+  { stage = Stage.fromString flags.stage
   , inputState = WaitForPalyerInput
   , frame = 0
-  , stageSrc =
-    "WWWWWWWWWW\n"++
-    "W    ,  +W\n"++
-    "W   , C2,W\n"++
-    "W     ;  W\n"++
-    "WG ,     W\n"++
-    "W < B >,GW\n"++
-    "WWWWWWWWWW"
+  , stageSrc = flags.stage
+  , stageEncoded = ""
+    --"WWWWWWWWWW\n"++
+    --"W    ,  +W\n"++
+    --"W   , C2,W\n"++
+    --"W     ;  W\n"++
+    --"WG ,     W\n"++
+    --"W < B >,GW\n"++
+    --"WWWWWWWWWW"
   }
-
-modelToString {stage, frame, inputState} =
-  "stage: " ++ Stage.toString stage ++ ", frame: " ++ String.fromInt frame ++ ", inputState: " ++ inputStateToString inputState
-
-inputStateToString inputState =
-  case inputState of
-    WaitForPalyerInput -> "WaitForPalyerInput"
-    WaitForEnemyTurn -> "WaitForEnemyTurn"
-    ForceEnemyTurn direction -> "ForceEnemyTurn"
-    WaitForAnimation -> "WaitForAnimation"
 
 
 
@@ -83,6 +78,7 @@ type Msg
   | StageSrcChanged String
   | LoadStage
   | AnimationFinished
+  | UriEncoded String
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -127,15 +123,18 @@ update msg model =
 
       EnemyTurn seed ->
         ( enemyTurn (Random.initialSeed seed) model
-        , Cmd.none )
+        , Cmd.none
+        )
 
       StageSrcChanged src ->
         ( { model | stageSrc = src }
-        , Cmd.none )
+        , Cmd.none
+        )
 
       LoadStage ->
         ( { model | stage = Stage.fromString model.stageSrc }
-        , Cmd.none )
+        , Cmd.none
+        )
 
 
       AnimationFinished ->
@@ -143,18 +142,23 @@ update msg model =
         , Cmd.none
         )
 
+      UriEncoded str ->
+        ( { model | stageEncoded = str }
+        , Cmd.none
+        )
+
 requestEnemyTurn =
   Random.generate EnemyTurn (Random.int Random.minInt Random.maxInt)
 
-enemyTurn seed {inputState, frame, stage, stageSrc} =
-  let nextStage = Stage.enemyTurn seed stage in
-  { inputState =
+enemyTurn seed model =
+  let nextStage = Stage.enemyTurn seed model.stage in
+  { model
+  | inputState =
       if (nextStage |> Stage.gameState) == GameOver
       then WaitForAnimation
       else WaitForPalyerInput
-  , frame = frame + 1
   , stage = nextStage
-  , stageSrc = stageSrc
+  , frame = model.frame + 1
   }
 
 
@@ -182,10 +186,10 @@ view model =
 
 playingView model =
   Html.div[]
-    [ Html.p[][text (modelToString model)]
-    , Stage.view model.stage
+    [ Stage.view model.stage
     , buttons
-    , stageEditor model.stageSrc]
+    , Html.a[Attr.href ("editor.html?stage="++model.stageEncoded)][Html.text "edit"]
+    ]
 
 buttons =
   Html.table[]
@@ -211,16 +215,6 @@ onTouch direction =
   , onStart (\e -> Key direction)
   ]
 
-stageEditor content =
-  Html.div[]
-    [ Html.p[][text "すて～じえでぃっと"]
-    , Html.textarea
-      [ onInput  StageSrcChanged
-      , Attr.value content
-      , Attr.rows 12
-      , Attr.cols 12][]
-    , Html.button[onClick LoadStage][text "よみこみ"]
-    ]
 
 
 -- SUBSCRIPTION --
@@ -239,6 +233,7 @@ subscriptions model =
       Sub.batch
         [ onKeyDown keyDecoder
         , Time.every 150 (\_ -> Tick)
+        , onUriEncoded UriEncoded
         ]
 
 

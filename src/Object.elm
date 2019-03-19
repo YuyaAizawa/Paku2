@@ -1,18 +1,19 @@
 module Object exposing
- ( Object(..)
- , ContactReaction(..)
- , chipSize
- , toSvg
- , reaction
- , fadeOut
- )
+  ( Object(..)
+  , ContactReaction(..)
+  , chipSize
+  , toSvg
+  , touchArea
+  , reaction
+  , fadeOut
+  )
 
 import Direction exposing (Direction(..))
 
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-
-
+import Svg.Events exposing (onMouseDown)
+import Svg.Events.Extra.Touch exposing (onStart)
 
 type Object
  = Paku
@@ -49,14 +50,27 @@ type ContactReaction
 
 chipSize = 16
 
-toSvg: Int -> Int -> Object -> Svg msg
+toSvg : Int -> Int -> Object -> Svg msg
 toSvg chipOffsetX chipOffsetY obj =
   obj
     |> tofigureList
     |> List.map figureToSvg
     |> translate (chipOffsetX * chipSize) (chipOffsetY * chipSize)
 
-reaction: Object -> ContactReaction
+touchArea : Int -> Int -> msg -> Svg msg
+touchArea chipOffsetX chipOffsetY msg =
+  rect
+    [ x <| String.fromInt <| (chipOffsetX*chipSize)
+    , y <| String.fromInt <| (chipOffsetY*chipSize)
+    , width <| String.fromInt <| chipSize
+    , height <| String.fromInt <| chipSize
+    , stroke "none"
+    , fill "#00000010"
+    , onMouseDown (msg)
+    , onStart (\_ -> msg)
+    ][]
+
+reaction : Object -> ContactReaction
 reaction obj =
   case obj of
     Paku -> Fixed
@@ -71,7 +85,7 @@ reaction obj =
     Pusher _ _ -> Movable
 
 
-tofigureList: Object -> List Figure
+tofigureList : Object -> List Figure
 tofigureList obj =
   case obj of
     Paku ->
@@ -145,12 +159,12 @@ tofigureList obj =
       [ Pusher Up 0 |> tofigureList |> Rotate 90 ]
 
 type Figure
- = Rectangle Int Int Int Int Color Color
- | Polygon (List (Int, Int)) Color Color
- | Polyline (List (Int, Int)) Color
- | Circle Int Int Int Color Color
- | Rotate Int (List Figure)
- | MirrorX (List Figure)
+  = Rectangle Int Int Int Int Color Color
+  | Polygon (List (Int, Int)) Color Color
+  | Polyline (List (Int, Int)) Color
+  | Circle Int Int Int Color Color
+  | Rotate Int (List Figure)
+  | MirrorX (List Figure)
 
 figureToSvg obj =
   case obj of
@@ -205,18 +219,17 @@ figureToSvg obj =
         [ transform "scale(-1, 1) translate(-16, 0)" ]
         (figures |> List.map figureToSvg)
 
-translate: Int -> Int -> List (Svg msg) -> Svg msg
+translate : Int -> Int -> List (Svg msg) -> Svg msg
 translate x y contents =
   Svg.g
     [ transform <| "translate(" ++ String.fromInt x ++ ", " ++ String.fromInt y ++ ")" ]
     contents
 
-fadeOut: Svg msg -> Svg msg
+fadeOut : Svg msg -> Svg msg
 fadeOut content =
   Svg.g
     [ class "fade-out" ]
     [ content ]
-
 
 type alias Color = String
 

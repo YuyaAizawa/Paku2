@@ -1,12 +1,15 @@
 module Stage exposing
   ( Stage
   , empty
+  , get
+  , put
   , GameState(..)
   , gameState
   , move
   , enemyTurn
   , view
   , toString
+  , export
   , fromString
   )
 
@@ -22,21 +25,87 @@ import Svg.Attributes exposing (viewBox)
 
 
 type alias Stage =
-  { map: Dict Coords Object
-  , size: (Int, Int)
+  { map : Dict Coords Object
+  , width : Int
+  , height : Int
   , playerPos: Coords
-  , miss: Bool
-  , gems: Int
+  , miss : Bool
+  , gems : Int
   }
 
 type alias Coords = (Int, Int)
 
 empty =
   { map = Dict.empty
-  , size = (0, 0)
+  , width = 2
+  , height = 2
   , playerPos = (0, 0)
   , miss = False
   , gems = 0
+  }
+
+get : Int -> Int -> Stage -> Maybe Object
+get x y stage =
+  stage.map
+    |> Dict.get (x, y)
+
+put : Int -> Int -> Maybe Object -> Stage -> Stage
+put x y obj stage =
+  if x < 1 || stage.width < (x-1)
+    || y < 1 || stage.height < (y-1)
+  then stage
+  else if get x y stage == Just Paku
+  then stage
+  else
+    let
+      map_ = case obj of
+        Just Paku -> stage.map |> Dict.remove stage.playerPos
+        _ -> stage.map
+
+      map__ = case obj of
+        Just obj_ -> map_ |> Dict.insert (x, y) obj_
+        Nothing -> map_ |> Dict.remove (x, y)
+    in
+    fromDict map__
+
+fromDict : Dict Coords Object -> Stage
+fromDict map =
+  let
+    gems =
+      map
+        |> Dict.values
+        |> List.filter (\o -> case o of
+          Gem _ _ -> True
+          _ -> False)
+        |> List.length
+    w =
+      map
+        |> Dict.keys
+        |> List.map (\(x, _) -> x)
+        |> List.maximum
+        |> Maybe.map (\n -> n + 1)
+        |> Maybe.withDefault 8
+    h =
+      map
+        |> Dict.keys
+        |> List.map (\(_, y) -> y)
+        |> List.maximum
+        |> Maybe.map (\n -> n + 1)
+        |> Maybe.withDefault 6
+    playerPos =
+      map
+        |> Dict.toList
+        |> List.filter (\(_, obj) -> obj == Paku)
+        |> List.head
+        |> Maybe.map (\((x, y), _) -> (x, y))
+        |> Maybe.withDefault (1, 1)
+  in
+  { map = map
+  , width = w
+  , height = h
+  , playerPos = playerPos
+  , miss = False
+  , gems = gems
   }
 
 type GameState
@@ -44,7 +113,7 @@ type GameState
   | Clear
   | GameOver
 
-gameState: Stage -> GameState
+gameState : Stage -> GameState
 gameState stage =
   if stage.gems == 0
   then Clear
@@ -61,8 +130,8 @@ type EntryType
 
 
 
-move: Direction -> Stage -> Stage
-move direction {map, size, playerPos, miss, gems} =
+move : Direction -> Stage -> Stage
+move direction {map, width, height, playerPos, miss, gems} =
   let
     p1 = towards direction playerPos
     p2 = towards direction p1
@@ -110,14 +179,16 @@ move direction {map, size, playerPos, miss, gems} =
         _ -> gems
 
   in
-    { map = newMap
-    , size = size
-    , playerPos = newPlayerPos
-    , miss = newMiss
-    , gems = newGems}
+  { map = newMap
+  , width = width
+  , height = height
+  , playerPos = newPlayerPos
+  , miss = newMiss
+  , gems = newGems
+  }
 
 -- 上書きして移動
-moveObject: Coords -> Direction -> Dict Coords Object -> Dict Coords Object
+moveObject : Coords -> Direction -> Dict Coords Object -> Dict Coords Object
 moveObject pos direction map =
   let
     newPos = pos |> towards direction
@@ -137,7 +208,7 @@ towards direction (x, y) =
         Left ->  (x - 1, y    )
         Right -> (x + 1, y    )
 
-enemyTurn: Seed -> Stage -> Stage
+enemyTurn : Seed -> Stage -> Stage
 enemyTurn seed stage =
   let
     (newMap, newMiss, _) =
@@ -147,7 +218,7 @@ enemyTurn seed stage =
   in
     { stage | map = newMap, miss = newMiss }
 
-enemyAction: Coords -> Object -> Coords -> (Dict Coords Object, Bool, Seed) -> (Dict Coords Object, Bool, Seed)
+enemyAction : Coords -> Object -> Coords -> (Dict Coords Object, Bool, Seed) -> (Dict Coords Object, Bool, Seed)
 enemyAction pos obj playerPos ( map, damaged, seed ) =
   case obj of
     Kiki direction ->
@@ -241,7 +312,7 @@ enemyAction pos obj playerPos ( map, damaged, seed ) =
 
     _ -> ( map, damaged, seed )
 
-gemGenerator: Random.Generator (Direction, Int)
+gemGenerator : Random.Generator (Direction, Int)
 gemGenerator =
   Random.pair randomDirecction (Random.int 5 10)
 
@@ -265,7 +336,7 @@ pursuit ex ey px py =
     then Down
     else Up
 
-randomDirecction: Random.Generator Direction
+randomDirecction : Random.Generator Direction
 randomDirecction =
   Random.int 0 3
     |> Random.map (\n ->
@@ -275,10 +346,9 @@ randomDirecction =
         2 -> Left
         _ -> Right)
 
-view: Stage -> Html msg
+view : Stage -> Html msg
 view stage =
   let (px, py) = stage.playerPos in
-  let (w, h) = stage.size in
   Svg.svg []
     ( stage.map
       |> Dict.toList
@@ -288,7 +358,7 @@ view stage =
         else obj |> Object.toSvg x y)
     )
 
-toString: Stage -> String
+toString : Stage -> String
 toString stage =
   "Stage { player: " ++
   coordsToString stage.playerPos ++
@@ -299,62 +369,76 @@ toString stage =
 coordsToString (x, y) =
   "(" ++ String.fromInt x ++ ", " ++ String.fromInt y ++ ")"
 
-fromString: String -> Stage
+export : Stage -> String
+export stage =
+  List.range 0 (stage.height - 1)
+    |> List.concatMap (\y -> List.range 0 stage.width
+      |> List.map (\x -> (x, y)))
+    |> List.map (\(x, y) ->
+      if x == stage.width
+      then '\n'
+      else
+        stage.map
+          |> Dict.get (x, y)
+          |> objToChar)
+    |> String.fromList
+
+
+fromString : String -> Stage
 fromString src =
   let
-    toObject c =
-      case c of
-        "W" -> Just Wall
-        "G" -> Just (Gem Up 0)
-        "B" -> Just Block
-        "8" -> Just (Kiki Up)
-        "2" -> Just (Kiki Down)
-        "4" -> Just (Kiki Left)
-        "6" -> Just (Kiki Right)
-        "," -> Just ClockwiseBlock
-        ";" -> Just AntiClockwiseBlock
-        "C" -> Just CrackedBlock
-        "+" -> Just (Spinner 0)
-        "^" -> Just (Pusher Up 0)
-        "v" -> Just (Pusher Down 0)
-        "<" -> Just (Pusher Left 0)
-        ">" -> Just (Pusher Right 0)
-        _ -> Nothing
     map =
       src
         |> String.split "\n"
-        |> List.map (\s -> s |> String.split "")
-        |> List.indexedMap (\y -> \l -> l
-          |> List.indexedMap (\x -> \c ->
-            (toObject c |> Maybe.map(\m -> ((x, y), m))))
-          |> List.filterMap (\m -> m))
-        |> List.concatMap (\l -> l)
+        |> List.indexedMap (\y l ->
+          l |> String.toList
+            |> List.indexedMap (\x c -> ((x, y), c))
+            |> List.filterMap (\(coord, char) ->
+              objFromChar char
+                |> Maybe.map(\o -> (coord, o))))
+        |> List.concat
         |> Dict.fromList
-    gems =
-      map
-        |> Dict.values
-        |> List.filter (\o -> case o of
-          Gem _ _ -> True
-          _ -> False)
-        |> List.length
-    w =
-      map
-        |> Dict.keys
-        |> List.map (\(x, _) -> x)
-        |> List.maximum
-        |> Maybe.map (\n -> n + 1)
-        |> Maybe.withDefault 8
-    h =
-      map
-        |> Dict.keys
-        |> List.map (\(_, y) -> y)
-        |> List.maximum
-        |> Maybe.map (\n -> n + 1)
-        |> Maybe.withDefault 6
-
   in
-    { map = map |> Dict.insert (1,1) Paku
-    , size = (w, h)
-    , playerPos = (1,1)
-    , miss = False
-    , gems = gems}
+  fromDict map
+
+objToChar : Maybe Object -> Char
+objToChar obj =
+  case obj of
+    Just Paku               -> '@'
+    Just Wall               -> 'W'
+    Just (Gem _ _)          -> 'G'
+    Just Block              -> 'B'
+    Just (Kiki Up)          -> '8'
+    Just (Kiki Down)        -> '2'
+    Just (Kiki Left)        -> '4'
+    Just (Kiki Right)       -> '6'
+    Just ClockwiseBlock     -> ','
+    Just AntiClockwiseBlock -> ';'
+    Just CrackedBlock       -> 'C'
+    Just (Spinner _)        -> '+'
+    Just (Pusher Up _)      -> '^'
+    Just (Pusher Down _)    -> 'v'
+    Just (Pusher Left _)    -> '<'
+    Just (Pusher Right _)   -> '>'
+    Nothing                 -> ' '
+
+objFromChar : Char -> Maybe Object
+objFromChar c =
+  case c of
+    '@' -> Just Paku
+    'W' -> Just Wall
+    'G' -> Just (Gem Up 0)
+    'B' -> Just Block
+    '8' -> Just (Kiki Up)
+    '2' -> Just (Kiki Down)
+    '4' -> Just (Kiki Left)
+    '6' -> Just (Kiki Right)
+    ',' -> Just ClockwiseBlock
+    ';' -> Just AntiClockwiseBlock
+    'C' -> Just CrackedBlock
+    '+' -> Just (Spinner 0)
+    '^' -> Just (Pusher Up 0)
+    'v' -> Just (Pusher Down 0)
+    '<' -> Just (Pusher Left 0)
+    '>' -> Just (Pusher Right 0)
+    _ -> Nothing
