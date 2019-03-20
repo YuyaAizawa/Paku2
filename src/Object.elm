@@ -13,7 +13,7 @@ import Direction exposing (Direction(..))
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (onMouseDown)
-import Svg.Events.Extra.Touch exposing (onStart)
+import Html.Events.Extra.Touch exposing (onStart)
 
 type Object
  = Paku
