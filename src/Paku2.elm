@@ -11,10 +11,12 @@ import Browser.Events exposing (onKeyDown, onKeyUp)
 import Task exposing (Task)
 import Html exposing (Html, text)
 import Html.Attributes as Attr
-import Html.Events exposing (onClick, onInput, onMouseDown, onMouseUp)
-import Html.Events.Extra.Touch exposing (onStart, onEnd, onCancel)
+import Html.Events exposing (onClick)
+import Html.Events.Extra.Touch exposing (onStart)
 import Svg
 import Svg.Attributes
+import Svg.Events exposing (onMouseDown)
+
 import Time
 import Json.Decode as Decode
 
@@ -167,47 +169,64 @@ enemyTurn seed model =
 
 view : Model -> Html Msg
 view model =
-  if model.inputState == WaitForAnimation
-  then playingView model
-  else
-    case model.stage |> Stage.gameState of
-      Playing ->
-       playingView model
-      Clear ->
-        Html.div[]
-         [ Html.p[][text "くりあ～"]
-         , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
-         ]
-      GameOver ->
-        Html.div[]
-         [ Html.p[][text "ミス"]
-         , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
-         ]
-
-playingView model =
-  Html.div[]
-    [ Stage.view model.stage
-    , buttons
-    , Html.a[Attr.href ("editor.html?stage="++model.stageEncoded)][Html.text "edit"]
+  let
+    top =
+      if model.inputState == WaitForAnimation
+      then
+        [ Stage.view model.stage
+        , buttons
+        ]
+      else case model.stage |> Stage.gameState of
+        Playing ->
+          [ Stage.view model.stage
+          , buttons
+          ]
+        Clear ->
+          [ Html.p[][text "くりあ～"]
+          , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
+          ]
+        GameOver ->
+          [ Html.p[][text "ミス"]
+          , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
+          ]
+  in
+  List.concat
+    [ top
+    , [ Html.p[]
+        [ Html.a
+          [ Attr.href ("editor.html?stage="++model.stageEncoded) ]
+          [ Html.text "edit" ]
+        ]
+      ]
     ]
+    |> Html.div []
 
 buttons =
-  Html.table[]
-    [ Html.tr[]
-      [ Html.td[][]
-      , Html.td[][Html.button (onTouch Up)[text "↑"]]
-      , Html.td[][]
-      ]
-    , Html.tr[]
-      [ Html.td[][Html.button (onTouch Left)[text "←"]]
-      , Html.td[][]
-      , Html.td[][Html.button (onTouch Right)[text "→"]]
-      ]
-    , Html.tr[]
-      [ Html.td[][]
-      , Html.td[][Html.button (onTouch Down)[text "↓"]]
-      , Html.td[][]
-      ]
+  Svg.svg []
+    [ button  70  35 0 (Key Up)
+    , button 105  70 1 (Key Right)
+    , button  70 105 2 (Key Down)
+    , button  35  70 3 (Key Left)
+    ]
+
+button x y r key =
+  Svg.g
+    [ Svg.Attributes.transform
+        <| "translate("++ String.fromInt x ++","++ String.fromInt y ++")"
+        ++ "rotate("++ String.fromInt (r*90) ++") "
+    ]
+    [ Svg.polygon
+        [ Svg.Attributes.points "0,-30 30,0 0,30 -30,0"
+        , Svg.Attributes.stroke "#AAAAAA"
+        , Svg.Attributes.fill   "#DDDDDD"
+        , onMouseDown (key)
+        , onStart (\_ -> key)
+        ]
+        []
+    , Svg.polygon
+        [ Svg.Attributes.points "0,-10 10,0 -10,0"
+        , Svg.Attributes.fill   "#000000"
+        ][]
     ]
 
 onTouch direction =

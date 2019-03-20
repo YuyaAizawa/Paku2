@@ -9,11 +9,8 @@ import Array exposing (Array)
 import Browser
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Html.Events exposing (onMouseDown)
-import Html.Events.Extra.Touch exposing (onStart)
 import Svg
 import Svg.Attributes
-import Svg.Events.Extra.Touch as SvgTouch
 
 
 main =

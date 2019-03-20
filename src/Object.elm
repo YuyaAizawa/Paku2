@@ -180,7 +180,7 @@ figureToSvg obj =
 
     Polygon pl s_ f_ ->
       polygon
-        [points (
+        [ points (
           pl
             |> List.map (\(x_, y_) -> String.fromInt x_ ++ "," ++ String.fromInt y_)
             |> List.intersperse " "
@@ -191,7 +191,7 @@ figureToSvg obj =
 
     Polyline pl c_ ->
       polyline
-        [points (
+        [ points (
           pl
             |> List.map (\(x_, y_) -> String.fromInt x_ ++ "," ++ String.fromInt y_)
             |> List.intersperse " "
