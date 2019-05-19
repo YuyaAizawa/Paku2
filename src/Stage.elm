@@ -6,7 +6,10 @@ module Stage exposing
   , GameState(..)
   , gameState
   , move
-  , enemyTurn
+  , AiStrategyContext
+  , enemyTurnStart
+  , reflectOn
+  , nextStep
   , view
   , toString
   , export
@@ -208,18 +211,40 @@ towards direction (x, y) =
         Left ->  (x - 1, y    )
         Right -> (x + 1, y    )
 
-enemyTurn : Seed -> Stage -> Stage
-enemyTurn seed stage =
-  let
-    (newMap, newMiss, _) =
-      stage.map
-        |> Dict.toList
-        |> List.foldr (\(p,o) -> enemyAction p o stage.playerPos) (stage.map, stage.miss, seed)
-  in
-    { stage | map = newMap, miss = newMiss }
+enemyTurnStart : Stage -> Maybe (Random.Generator AiStrategyContext)
+enemyTurnStart stage =
+  nextStep stage
+    ( ( stage.map, False )
+    , stage.map |> Dict.toList
+    )
 
-enemyAction : Coords -> Object -> Coords -> (Dict Coords Object, Bool, Seed) -> (Dict Coords Object, Bool, Seed)
-enemyAction pos obj playerPos ( map, damaged, seed ) =
+type alias AiStrategyContext = (AiStrategyResult, AiStrategyTask)
+type alias AiStrategyTask = List (Coords, Object)
+type alias AiStrategyResult = (Dict Coords Object, Bool)
+
+reflectOn : Stage -> AiStrategyContext -> Stage
+reflectOn stage ( ( map, damaged ), _ ) =
+  { stage
+  | map = map
+  , miss = if stage.miss then True else damaged
+  }
+
+nextStep : Stage -> AiStrategyContext -> Maybe (Random.Generator AiStrategyContext)
+nextStep stage ( _ , task ) =
+  case task of
+    [] -> Nothing
+    hd::tl ->
+      let
+        strategy =
+          developStrategy hd stage.playerPos stage.map
+      in
+        strategy
+          |> Random.map (\s -> (s, tl))
+          |> Just
+
+
+developStrategy : (Coords, Object) -> Coords -> Dict Coords Object -> Random.Generator AiStrategyResult
+developStrategy (pos, obj) playerPos map =
   case obj of
     Kiki direction ->
       let
@@ -233,16 +258,18 @@ enemyAction pos obj playerPos ( map, damaged, seed ) =
               map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
             _ -> map
       in
-        ( map_, damaged, seed )
+        ( map_, False ) |> Random.constant
 
     Gem frame 0 ->
-      let
-        ((nextFrame, nextRemaining), nextSeed) =
-          Random.step gemGenerator seed
-      in
-        ( (map |> Dict.insert pos ( Gem nextFrame nextRemaining )), damaged, nextSeed )
+      gemGenerator
+            |> Random.map (\( nextFrame, nextRemaining ) ->
+              ( map |> Dict.insert pos ( Gem nextFrame nextRemaining )
+              , False
+              ))
     Gem frame remaining ->
-      ( (map |> Dict.insert pos (Gem frame (remaining - 1))), damaged, seed )
+      ( (map |> Dict.insert pos (Gem frame (remaining - 1)))
+      , False
+      ) |> Random.constant
 
     Spinner i ->
       let
@@ -251,22 +278,22 @@ enemyAction pos obj playerPos ( map, damaged, seed ) =
             2 -> 0
             n -> n + 1
         nextSpinner = Spinner nextFrame
-
-        (md, nextSeed) =
-          spinnerAi pos playerPos seed
-        nextPos =
-          md
-            |> Maybe.map (\d -> pos |> towards d)
-            |> Maybe.withDefault pos
-
-        removedMap = map |> Dict.remove pos
-        (nextMap, nextDamaged) =
-            case removedMap |> Dict.get nextPos of
-              Nothing -> (removedMap |> Dict.insert nextPos nextSpinner, damaged)
-              Just Paku -> (removedMap |> Dict.insert pos nextSpinner, True)
-              _ -> (removedMap |> Dict.insert pos nextSpinner, damaged)
       in
-        ( nextMap, nextDamaged, nextSeed )
+        spinnerAi pos playerPos
+          |> Random.map (\direction ->
+            let
+              nextPos =
+                direction
+                  |> Maybe.map (\d -> pos |> towards d)
+                  |> Maybe.withDefault pos
+              removedMap = map |> Dict.remove pos
+              (nextMap, nextDamaged) =
+                case removedMap |> Dict.get nextPos of
+                  Nothing -> (removedMap |> Dict.insert nextPos nextSpinner, False)
+                  Just Paku -> (removedMap |> Dict.insert pos nextSpinner, True)
+                  _ -> (removedMap |> Dict.insert pos nextSpinner, False)
+            in
+              ( nextMap, nextDamaged ) )
 
     Pusher d 0 ->
       let
@@ -302,30 +329,33 @@ enemyAction pos obj playerPos ( map, damaged, seed ) =
                 |> Dict.insert pos (Pusher (d |> Direction.mirror) pusherWait)
             _ -> map
       in
-        ( newMap, damaged, seed )
+        ( newMap, False ) |> Random.constant
 
     Pusher d n ->
       let
         newMap = map |> Dict.insert pos (Pusher d (n-1))
       in
-        ( newMap, damaged, seed )
+        ( newMap, False ) |> Random.constant
 
-    _ -> ( map, damaged, seed )
+    _ -> ( map, False ) |> Random.constant
 
 gemGenerator : Random.Generator (Direction, Int)
 gemGenerator =
   Random.pair randomDirecction (Random.int 5 10)
 
-spinnerAi (sx, sy) (px, py) seed =
-  let
-    (i, seed1) = Random.step (Random.int 0 3) seed
-    (d, seed2) =
+spinnerAi : Coords -> Coords -> Random.Generator (Maybe Direction)
+spinnerAi (sx, sy) (px, py) =
+  Random.int 0 3
+    |> Random.andThen (\i ->
       case i of
-        0 -> (Just (pursuit sx sy px py), seed1)
-        1 -> Random.step randomDirecction seed1 |> (\(d_, s_) -> (Just d_, s_))
-        _ -> (Nothing, seed1)
-  in
-    (d, seed2)
+        0 ->
+          Just (pursuit sx sy px py)
+            |> Random.constant
+        1 ->
+          randomDirecction
+            |> Random.map Just
+        _ -> Nothing
+            |> Random.constant)
 
 pursuit ex ey px py =
   if (px - ex)*(px - ex) > (py - ey)*(py - ey)

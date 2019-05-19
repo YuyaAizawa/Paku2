@@ -36,7 +36,7 @@
     var param = GetQueryString()
     if (param == null) {
       param = new Object()
-      param['stage'] = decodeURIComponent("WWWWWWWWWW%0d%0aW%20%20%20%20%2c%20%20%2bW%0d%0aW%20%20%20%2c%20C2%2cW%0d%0aW%20%20%20%20%20%3b%20%20W%0d%0aWG%20%2c%20%20%20%20%20W%0d%0aW%20%3c%20B%20%3e%2cGW%0d%0aWWWWWWWWWW")
+      param['stage'] = decodeURIComponent("WWWWWWWWWW%0D%0AW%40%20%20%20%2C%20%20%2BW%0D%0AW%20%20%20%2C%20C2%2CW%0D%0AW%20%20%20%20%20%3B%20%20W%0D%0AWG%20%2C%20%20%20%20%20W%0D%0AW%20<%20B%20>%2CGW%0D%0AWWWWWWWWWW")
     }
     const app = Elm.Paku2.init({ node: document.getElementById("elm-area"), flags: { stage: param['stage'] }});
 

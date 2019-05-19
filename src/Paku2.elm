@@ -1,7 +1,7 @@
 module Paku2 exposing (init)
 
 import Direction exposing (Direction(..))
-import Stage exposing (Stage, GameState(..))
+import Stage exposing (Stage, GameState(..), AiStrategyContext)
 import Ports exposing (encodeUri, onUriEncoded, decodeUri, onUriDecoded)
 
 import Dict exposing (Dict)
@@ -76,7 +76,7 @@ type Msg
   | Tick
   | Key Direction
   | ForceTick Direction
-  | EnemyTurn Int
+  | EnemyTurn AiStrategyContext
   | StageSrcChanged String
   | LoadStage
   | AnimationFinished
@@ -93,7 +93,7 @@ update msg model =
         then
           ( model, Cmd.none )
         else
-          ( model, requestEnemyTurn )
+          ( model, requestEnemyTurn model.stage )
 
       Key direction ->
         if Stage.gameState model.stage /= Playing
@@ -118,15 +118,31 @@ update msg model =
       ForceTick direction ->
         ( model
         , Cmd.batch
-          [ requestEnemyTurn
+          [ requestEnemyTurn model.stage
           , Task.perform Key (Task.succeed direction)
           ]
         )
 
-      EnemyTurn seed ->
-        ( enemyTurn (Random.initialSeed seed) model
-        , Cmd.none
-        )
+      EnemyTurn context ->
+        let
+          stage = context |> Stage.reflectOn model.stage
+          stageUpdated = { model | stage = stage }
+          nextStep = context |> Stage.nextStep stage
+        in case nextStep of
+          Nothing ->
+            ( { stageUpdated
+              | inputState =
+                if (stage |> Stage.gameState) == GameOver
+                then WaitForAnimation
+                else WaitForPalyerInput
+              , frame = model.frame + 1
+              }
+            , Cmd.none
+            )
+          Just strategy ->
+            ( stageUpdated
+            , strategy |> Random.generate EnemyTurn
+            )
 
       StageSrcChanged src ->
         ( { model | stageSrc = src }
@@ -138,7 +154,6 @@ update msg model =
         , Cmd.none
         )
 
-
       AnimationFinished ->
         ( { model | inputState = WaitForPalyerInput }
         , Cmd.none
@@ -149,19 +164,10 @@ update msg model =
         , Cmd.none
         )
 
-requestEnemyTurn =
-  Random.generate EnemyTurn (Random.int Random.minInt Random.maxInt)
-
-enemyTurn seed model =
-  let nextStage = Stage.enemyTurn seed model.stage in
-  { model
-  | inputState =
-      if (nextStage |> Stage.gameState) == GameOver
-      then WaitForAnimation
-      else WaitForPalyerInput
-  , stage = nextStage
-  , frame = model.frame + 1
-  }
+requestEnemyTurn stage =
+  case Stage.enemyTurnStart stage of
+    Just ets -> Random.generate EnemyTurn ets
+    Nothing -> Cmd.none
 
 
 
