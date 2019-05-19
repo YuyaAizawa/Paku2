@@ -18,3 +18,7 @@ $(JS):js/%.js:src/%.elm
 .PHONY: clean
 clean:
 	$(RM) $(JS)
+
+src/Paku2.elm: src/Stage.elm src/Ports.elm src/Direction.elm
+src/Stage.elm: src/Object.elm src/Direction.elm
+src/Object.elm: src/Direction.elm

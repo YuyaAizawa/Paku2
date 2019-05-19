@@ -42,9 +42,9 @@ type alias Model =
   }
 
 type InputState
- = WaitForPalyerInput
+ = WaitForPlayerInput
  | WaitForEnemyTurn
- | ForceEnemyTurn Direction
+ | ForceEnemyTurn -- タイマーリセットに必要
  | WaitForAnimation
 
 type alias Flags =
@@ -54,7 +54,7 @@ init : Flags -> (Model, Cmd Msg)
 init flags = ( initModel flags, encodeUri flags.stage )
 initModel flags =
   { stage = Stage.fromString flags.stage
-  , inputState = WaitForPalyerInput
+  , inputState = WaitForPlayerInput
   , frame = 0
   , stageSrc = flags.stage
   , stageEncoded = ""
@@ -75,7 +75,6 @@ type Msg
   = Nop
   | Tick
   | Key Direction
-  | ForceTick Direction
   | EnemyTurn AiStrategyContext
   | StageSrcChanged String
   | LoadStage
@@ -99,29 +98,21 @@ update msg model =
         if Stage.gameState model.stage /= Playing
         then
           ( model, Cmd.none )
+        else if model.inputState == WaitForEnemyTurn
+        then forceTick model direction
         else
           let
+            nextStage = Stage.move direction model.stage
             newModel =
-              if model.inputState == WaitForEnemyTurn
-              then { model | inputState = ForceEnemyTurn direction}
-              else
-                let nextStage = Stage.move direction model.stage in
-                { model
-                | stage = nextStage
-                , inputState =
-                  if Stage.gameState nextStage == GameOver
-                  then WaitForAnimation
-                  else WaitForEnemyTurn }
+              { model
+              | stage = nextStage
+              , inputState =
+                if Stage.gameState nextStage == GameOver
+                then WaitForAnimation
+                else WaitForEnemyTurn
+              }
           in
             ( newModel, Cmd.none )
-
-      ForceTick direction ->
-        ( model
-        , Cmd.batch
-          [ requestEnemyTurn model.stage
-          , Task.perform Key (Task.succeed direction)
-          ]
-        )
 
       EnemyTurn context ->
         let
@@ -134,7 +125,7 @@ update msg model =
               | inputState =
                 if (stage |> Stage.gameState) == GameOver
                 then WaitForAnimation
-                else WaitForPalyerInput
+                else WaitForPlayerInput
               , frame = model.frame + 1
               }
             , Cmd.none
@@ -155,7 +146,7 @@ update msg model =
         )
 
       AnimationFinished ->
-        ( { model | inputState = WaitForPalyerInput }
+        ( { model | inputState = WaitForPlayerInput }
         , Cmd.none
         )
 
@@ -169,7 +160,13 @@ requestEnemyTurn stage =
     Just ets -> Random.generate EnemyTurn ets
     Nothing -> Cmd.none
 
-
+forceTick model direction =
+  ( { model | inputState = ForceEnemyTurn }
+  , Cmd.batch
+    [ requestEnemyTurn model.stage
+    , Task.perform Key (Task.succeed direction)
+    ]
+  )
 
 -- VIEW --
 
@@ -248,8 +245,8 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   case model.inputState of
 
-    ForceEnemyTurn direction ->
-      Time.every 50 (\_ -> ForceTick direction)
+    ForceEnemyTurn ->
+      Time.every 100 (\_ -> Tick)
 
     WaitForAnimation ->
       Time.every 500 (\_ -> AnimationFinished)

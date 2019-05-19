@@ -31,7 +31,6 @@ type alias Stage =
   { map : Dict Coords Object
   , width : Int
   , height : Int
-  , playerPos: Coords
   , miss : Bool
   , gems : Int
   }
@@ -61,15 +60,11 @@ put x y obj stage =
   then stage
   else
     let
-      map_ = case obj of
-        Just Paku -> stage.map |> Dict.remove stage.playerPos
-        _ -> stage.map
-
-      map__ = case obj of
-        Just obj_ -> map_ |> Dict.insert (x, y) obj_
-        Nothing -> map_ |> Dict.remove (x, y)
+      map = case obj of
+        Just obj_ -> stage.map |> Dict.insert (x, y) obj_
+        Nothing -> stage.map |> Dict.remove (x, y)
     in
-    fromDict map__
+    fromDict map
 
 fromDict : Dict Coords Object -> Stage
 fromDict map =
@@ -95,18 +90,11 @@ fromDict map =
         |> List.maximum
         |> Maybe.map (\n -> n + 1)
         |> Maybe.withDefault 6
-    playerPos =
-      map
-        |> Dict.toList
-        |> List.filter (\(_, obj) -> obj == Paku)
-        |> List.head
-        |> Maybe.map (\((x, y), _) -> (x, y))
-        |> Maybe.withDefault (1, 1)
+
   in
   { map = map
   , width = w
   , height = h
-  , playerPos = playerPos
   , miss = False
   , gems = gems
   }
@@ -134,24 +122,23 @@ type EntryType
 
 
 move : Direction -> Stage -> Stage
-move direction {map, width, height, playerPos, miss, gems} =
+move direction {map, width, height, miss, gems} =
   let
+    playerPos = getPlayerPos map
     p1 = towards direction playerPos
     p2 = towards direction p1
     o1 = Dict.get p1 map
     entryType =
-      o1
-        |> Maybe.map
-          ( \o -> case Object.reaction o of
-            Takable -> TakeEntry o
-            Movable ->
-              if map |> Dict.member p2
-              then CannotEntry
-              else PushEntry o
-            Fixed -> CannotEntry
-            Aggressive -> Damaged
-          )
-        |> Maybe.withDefault JustEntry
+      case o1 of
+        Nothing -> JustEntry
+        Just obj -> case obj |> Object.reaction of
+          Takable -> TakeEntry obj
+          Movable ->
+            if map |> Dict.member p2
+            then CannotEntry
+            else PushEntry obj
+          Fixed -> CannotEntry
+          Aggressive -> Damaged
 
     newMap =
       case entryType of
@@ -185,7 +172,6 @@ move direction {map, width, height, playerPos, miss, gems} =
   { map = newMap
   , width = width
   , height = height
-  , playerPos = newPlayerPos
   , miss = newMiss
   , gems = newGems
   }
@@ -196,13 +182,12 @@ moveObject pos direction map =
   let
     newPos = pos |> towards direction
   in
-    map
-      |> Dict.get pos
-      |> Maybe.map (\obj ->
+    case map |> Dict.get pos of
+      Nothing -> map
+      Just obj ->
         map
           |> Dict.remove pos
-          |> Dict.insert newPos obj)
-      |> Maybe.withDefault map
+          |> Dict.insert newPos obj
 
 towards direction (x, y) =
   case direction of
@@ -231,12 +216,14 @@ reflectOn stage ( ( map, damaged ), _ ) =
 
 nextStep : Stage -> AiStrategyContext -> Maybe (Random.Generator AiStrategyContext)
 nextStep stage ( _ , task ) =
-  case task of
+  let 
+    playerPos = getPlayerPos stage.map
+  in case task of
     [] -> Nothing
     hd::tl ->
       let
         strategy =
-          developStrategy hd stage.playerPos stage.map
+          developStrategy hd playerPos stage.map
       in
         strategy
           |> Random.map (\s -> (s, tl))
@@ -339,6 +326,14 @@ developStrategy (pos, obj) playerPos map =
 
     _ -> ( map, False ) |> Random.constant
 
+getPlayerPos map =
+  map
+    |> Dict.toList
+    |> List.filter (\(c, o) -> o == Paku)
+    |> List.head
+    |> Maybe.map Tuple.first
+    |> Maybe.withDefault (0, 0)
+
 gemGenerator : Random.Generator (Direction, Int)
 gemGenerator =
   Random.pair randomDirecction (Random.int 5 10)
@@ -378,7 +373,7 @@ randomDirecction =
 
 view : Stage -> Html msg
 view stage =
-  let (px, py) = stage.playerPos in
+  let (px, py) = getPlayerPos stage.map in
   Svg.svg []
     ( stage.map
       |> Dict.toList
@@ -390,9 +385,7 @@ view stage =
 
 toString : Stage -> String
 toString stage =
-  "Stage { player: " ++
-  coordsToString stage.playerPos ++
-  ", gems: " ++
+  "Stage { gems: " ++
   String.fromInt stage.gems ++
   "}"
 
