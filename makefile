@@ -1,7 +1,8 @@
-
 JS = js/Paku2.js js/StageEditor.js
 
 ELMC = elm make
+
+
 
 .SUFFIXES: .elm .js
 
@@ -9,6 +10,9 @@ ELMC = elm make
 all: $(JS)
 
 $(JS):js/%.js:src/%.elm
+	@if [ ! -d js ]; \
+        then mkdir -p js; \
+        fi
 	$(ELMC) $< --output $@ --optimize
 
 .PHONY: clean
