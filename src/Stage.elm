@@ -1,18 +1,12 @@
 module Stage exposing
   ( Stage
-  , empty
-  , get
+  , State(..)
   , put
-  , GameState(..)
-  , gameState
   , move
-  , AiStrategyContext
-  , enemyTurnStart
-  , reflectOn
-  , nextStep
+  , enemyTurn
+  , state
   , view
   , toString
-  , export
   , fromString
   )
 
@@ -28,45 +22,30 @@ import Svg.Attributes exposing (viewBox)
 
 
 type alias Stage =
-  { map : Dict Coords Object
-  , width : Int
-  , height : Int
+  { map : Dict Coord Object
+  , size : Coord
   , miss : Bool
-  , gems : Int
   }
 
-type alias Coords = (Int, Int)
+type alias Coord = ( Int, Int )
+
+type State
+  = Playing
+  | Cleared
+  | Miss
 
 empty =
-  { map = Dict.empty
-  , width = 2
-  , height = 2
-  , playerPos = (0, 0)
+  { map =
+      Dict.fromList
+      [ ( ( 0, 0 ), Paku )
+      , ( ( 1, 1 ), Gem Up 0 )
+      ]
+  , size =
+      ( 2, 2 )
   , miss = False
-  , gems = 0
   }
 
-get : Int -> Int -> Stage -> Maybe Object
-get x y stage =
-  stage.map
-    |> Dict.get (x, y)
-
-put : Int -> Int -> Maybe Object -> Stage -> Stage
-put x y obj stage =
-  if x < 1 || stage.width < (x-1)
-    || y < 1 || stage.height < (y-1)
-  then stage
-  else if get x y stage == Just Paku
-  then stage
-  else
-    let
-      map = case obj of
-        Just obj_ -> stage.map |> Dict.insert (x, y) obj_
-        Nothing -> stage.map |> Dict.remove (x, y)
-    in
-    fromDict map
-
-fromDict : Dict Coords Object -> Stage
+fromDict : Dict Coord Object -> Stage
 fromDict map =
   let
     gems =
@@ -93,101 +72,100 @@ fromDict map =
 
   in
   { map = map
-  , width = w
-  , height = h
+  , size = ( w, h )
   , miss = False
-  , gems = gems
   }
 
-type GameState
-  = Playing
-  | Clear
-  | GameOver
-
-gameState : Stage -> GameState
-gameState stage =
-  if stage.gems == 0
-  then Clear
-  else if stage.miss
-  then GameOver
-  else Playing
 
 type EntryType
- = JustEntry
- | PushEntry Object
- | TakeEntry Object
- | CannotEntry
- | Damaged
+  = JustEntry
+  | PushEntry Object
+  | TakeEntry Object
+  | CannotEntry
+  | CannotEntryAndDamaged
 
 
+put : Int -> Int -> Maybe Object -> Stage -> Stage
+put x y maybe stage =
+  let
+    map = case maybe of
+      Nothing ->
+        stage.map |> Dict.remove ( x, y )
+      Just obj ->
+        if obj == Paku
+        then
+          stage.map
+            |> Dict.remove (pakuPos stage)
+            |> Dict.insert ( x, y ) Paku
+        else
+          stage.map |> Dict.insert ( x, y ) obj
+  in
+    { stage | map = map }
 
 move : Direction -> Stage -> Stage
-move direction {map, width, height, miss, gems} =
-  let
-    playerPos = getPlayerPos map
-    p1 = towards direction playerPos
-    p2 = towards direction p1
-    o1 = Dict.get p1 map
-    entryType =
-      case o1 of
-        Nothing -> JustEntry
-        Just obj -> case obj |> Object.reaction of
-          Takable -> TakeEntry obj
-          Movable ->
-            if map |> Dict.member p2
-            then CannotEntry
-            else PushEntry obj
-          Fixed -> CannotEntry
-          Aggressive -> Damaged
+move direction stage =
+  if stage.miss
+  then stage
+  else
+    let
+      p0 = stage |> pakuPos
+      p1 = p0    |> towards direction
+      p2 = p1    |> towards direction
 
-    newMap =
-      case entryType of
-        JustEntry ->
-          map |> moveObject playerPos direction
-        PushEntry o ->
-          map
-            |> moveObject p1 direction
-            |> moveObject playerPos direction
-        TakeEntry o ->
-          map |> moveObject playerPos direction
-        CannotEntry -> map
-        Damaged -> map
-    newPlayerPos =
-      case entryType of
-        JustEntry   -> p1
-        PushEntry _ -> p1
-        TakeEntry _ -> p1
-        CannotEntry -> playerPos
-        Damaged -> playerPos
-    newMiss =
-      case entryType of
-        Damaged -> True
-        _ -> False
-    newGems =
-      case o1 of
-        Just (Gem _ _) -> gems - 1
-        _ -> gems
+      o1 = stage.map |> Dict.get p1
 
-  in
-  { map = newMap
-  , width = width
-  , height = height
-  , miss = newMiss
-  , gems = newGems
-  }
+      entryType =
+        case o1 of
+          Nothing ->
+            JustEntry
 
--- 上書きして移動
-moveObject : Coords -> Direction -> Dict Coords Object -> Dict Coords Object
-moveObject pos direction map =
-  let
-    newPos = pos |> towards direction
-  in
-    case map |> Dict.get pos of
-      Nothing -> map
-      Just obj ->
-        map
-          |> Dict.remove pos
-          |> Dict.insert newPos obj
+          Just obj ->
+            case obj |> Object.reaction of
+              Takable ->
+                TakeEntry obj
+
+              Movable ->
+                  if stage.map |> Dict.member p2
+                  then CannotEntry
+                  else PushEntry obj
+
+              Fixed ->
+                CannotEntry
+
+              Aggressive ->
+                CannotEntryAndDamaged
+
+      map =
+        case entryType of
+          JustEntry ->
+            stage.map
+              |> Dict.remove p0
+              |> Dict.insert p1 Paku
+
+          TakeEntry _ ->
+            stage.map
+              |> Dict.remove p0
+              |> Dict.insert p1 Paku
+
+          PushEntry obj ->
+            stage.map
+              |> Dict.remove p0
+              |> Dict.insert p1 Paku
+              |> Dict.insert p2 obj
+
+          _ ->
+            stage.map
+
+      miss =
+        case entryType of
+          CannotEntryAndDamaged -> True
+          _                     -> False
+    in
+      { stage
+      | map = map
+      , miss = miss
+      }
+
 
 towards direction (x, y) =
   case direction of
@@ -196,67 +174,57 @@ towards direction (x, y) =
         Left ->  (x - 1, y    )
         Right -> (x + 1, y    )
 
-enemyTurnStart : Stage -> Maybe (Random.Generator AiStrategyContext)
-enemyTurnStart stage =
-  nextStep stage
-    ( ( stage.map, False )
-    , stage.map |> Dict.toList
-    )
 
-type alias AiStrategyContext = (AiStrategyResult, AiStrategyTask)
-type alias AiStrategyTask = List (Coords, Object)
-type alias AiStrategyResult = (Dict Coords Object, Bool)
+enemyTurn : Stage -> Random.Generator Stage
+enemyTurn stage =
+  let
+    acc ( pos, obj ) prev =
+      prev
+        |> Random.andThen (\stage_ -> step pos obj stage_)
 
-reflectOn : Stage -> AiStrategyContext -> Stage
-reflectOn stage ( ( map, damaged ), _ ) =
-  { stage
-  | map = map
-  , miss = if stage.miss then True else damaged
-  }
-
-nextStep : Stage -> AiStrategyContext -> Maybe (Random.Generator AiStrategyContext)
-nextStep stage ( _ , task ) =
-  let 
-    playerPos = getPlayerPos stage.map
-  in case task of
-    [] -> Nothing
-    hd::tl ->
-      let
-        strategy =
-          developStrategy hd playerPos stage.map
-      in
-        strategy
-          |> Random.map (\s -> (s, tl))
-          |> Just
+    init =
+      Random.constant stage
+  in
+    stage.map
+      |> Dict.toList
+      |> List.foldl acc init
 
 
-developStrategy : (Coords, Object) -> Coords -> Dict Coords Object -> Random.Generator AiStrategyResult
-developStrategy (pos, obj) playerPos map =
+step : Coord -> Object -> Stage -> Random.Generator Stage
+step pos obj stage =
   case obj of
     Kiki direction ->
       let
-        map_ =
-          case map |> Dict.get (pos |> towards direction) of
+        map =
+          case stage.map |> Dict.get (pos |> towards direction) of
             Nothing ->
-              map |> moveObject pos direction
+              stage.map |> Dict.remove pos |> Dict.insert (pos |> towards direction) obj
             Just ClockwiseBlock ->
-              map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
+              stage.map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
             Just AntiClockwiseBlock ->
-              map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
-            _ -> map
+              stage.map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
+            _ -> stage.map
       in
-        ( map_, False ) |> Random.constant
+        { stage | map = map } |> Random.constant
 
     Gem frame 0 ->
       gemGenerator
-            |> Random.map (\( nextFrame, nextRemaining ) ->
-              ( map |> Dict.insert pos ( Gem nextFrame nextRemaining )
-              , False
-              ))
+        |> Random.map (\( nextFrame, nextRemaining ) ->
+          let
+            map =
+              stage.map
+                |> Dict.insert pos ( Gem nextFrame nextRemaining )
+          in
+            { stage | map = map }
+        )
+
     Gem frame remaining ->
-      ( (map |> Dict.insert pos (Gem frame (remaining - 1)))
-      , False
-      ) |> Random.constant
+      let
+        map =
+          stage.map
+            |> Dict.insert pos (Gem frame (remaining - 1))
+      in
+        { stage | map = map } |> Random.constant
 
     Spinner i ->
       let
@@ -266,34 +234,38 @@ developStrategy (pos, obj) playerPos map =
             n -> n + 1
         nextSpinner = Spinner nextFrame
       in
-        spinnerAi pos playerPos
+        spinnerAi pos (pakuPos stage)
           |> Random.map (\direction ->
             let
               nextPos =
                 direction
                   |> Maybe.map (\d -> pos |> towards d)
                   |> Maybe.withDefault pos
-              removedMap = map |> Dict.remove pos
-              (nextMap, nextDamaged) =
+              removedMap = stage.map |> Dict.remove pos
+              ( nextMap, nextDamaged ) =
                 case removedMap |> Dict.get nextPos of
                   Nothing -> (removedMap |> Dict.insert nextPos nextSpinner, False)
                   Just Paku -> (removedMap |> Dict.insert pos nextSpinner, True)
                   _ -> (removedMap |> Dict.insert pos nextSpinner, False)
             in
-              ( nextMap, nextDamaged ) )
+              { stage
+              | map = nextMap
+              , miss = stage.miss || nextDamaged
+              }
+          )
 
     Pusher d 0 ->
       let
         pusherWait = 6
         p1 = towards d pos
         p2 = towards d p1
-        o1 = Dict.get p1 map
+        o1 = Dict.get p1 stage.map
         entryType =
           o1
             |> Maybe.map
               ( \o -> case Object.reaction o of
                 Movable ->
-                  if map |> Dict.member p2
+                  if stage.map |> Dict.member p2
                   then CannotEntry
                   else PushEntry o
                 Fixed -> CannotEntry
@@ -301,44 +273,47 @@ developStrategy (pos, obj) playerPos map =
               )
             |> Maybe.withDefault JustEntry
 
-        newMap =
+        map =
           case entryType of
             JustEntry ->
-              map
+              stage.map
                 |> Dict.remove pos
                 |> Dict.insert p1 (Pusher d pusherWait)
             PushEntry o ->
-              map
-                |> moveObject p1 d
+              stage.map
+                |> Dict.remove pos
+                |> Dict.insert p2 o
                 |> Dict.insert pos (Pusher (d |> Direction.mirror) pusherWait)
             CannotEntry ->
-              map
+              stage.map
                 |> Dict.insert pos (Pusher (d |> Direction.mirror) pusherWait)
-            _ -> map
+            _ -> stage.map
       in
-        ( newMap, False ) |> Random.constant
+        { stage | map = map } |> Random.constant
 
     Pusher d n ->
       let
-        newMap = map |> Dict.insert pos (Pusher d (n-1))
+        map = stage.map |> Dict.insert pos (Pusher d (n-1))
       in
-        ( newMap, False ) |> Random.constant
+        { stage | map = map } |> Random.constant
 
-    _ -> ( map, False ) |> Random.constant
+    _ -> stage |> Random.constant
 
-getPlayerPos map =
-  map
+
+pakuPos : Stage -> Coord
+pakuPos stage =
+  stage.map
     |> Dict.toList
-    |> List.filter (\(c, o) -> o == Paku)
+    |> List.filter (\( _, obj ) -> obj == Paku)
     |> List.head
     |> Maybe.map Tuple.first
-    |> Maybe.withDefault (0, 0)
+    |> Maybe.withDefault ( -1, -1 )
 
 gemGenerator : Random.Generator (Direction, Int)
 gemGenerator =
   Random.pair randomDirecction (Random.int 5 10)
 
-spinnerAi : Coords -> Coords -> Random.Generator (Maybe Direction)
+spinnerAi : Coord -> Coord -> Random.Generator (Maybe Direction)
 spinnerAi (sx, sy) (px, py) =
   Random.int 0 3
     |> Random.andThen (\i ->
@@ -371,34 +346,48 @@ randomDirecction =
         2 -> Left
         _ -> Right)
 
+countGems : Stage -> Int
+countGems stage =
+  stage.map
+    |> Dict.toList
+    |> List.filter (\( _, obj ) ->
+      case obj of
+        Gem _ _ -> True
+        _ -> False)
+    |> List.length
+
+state : Stage -> State
+state stage =
+  if stage.miss
+  then Miss
+  else if countGems stage == 0
+  then Cleared
+  else Playing
+
 view : Stage -> Html msg
 view stage =
-  let (px, py) = getPlayerPos stage.map in
+  let (px, py) = pakuPos stage in
   Svg.svg []
     ( stage.map
       |> Dict.toList
       |> List.map (\((x, y), obj) ->
-        if obj == Paku && gameState stage == GameOver
+        if obj == Paku && stage.miss
         then obj |> Object.toSvg x y |> Object.fadeOut
         else obj |> Object.toSvg x y)
     )
 
-toString : Stage -> String
-toString stage =
-  "Stage { gems: " ++
-  String.fromInt stage.gems ++
-  "}"
 
 coordsToString (x, y) =
   "(" ++ String.fromInt x ++ ", " ++ String.fromInt y ++ ")"
 
-export : Stage -> String
-export stage =
-  List.range 0 (stage.height - 1)
-    |> List.concatMap (\y -> List.range 0 stage.width
+toString : Stage -> String
+toString stage =
+  let ( width, height ) = stage.size in
+  List.range 0 (height - 1)
+    |> List.concatMap (\y -> List.range 0 width
       |> List.map (\x -> (x, y)))
     |> List.map (\(x, y) ->
-      if x == stage.width
+      if x == width
       then '\n'
       else
         stage.map

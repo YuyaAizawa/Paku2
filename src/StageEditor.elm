@@ -67,7 +67,7 @@ update msg model =
                 |> Maybe.andThen (\a -> if a == Nothing then Nothing else a)
               )
       in
-      ( { model | stage = newStage }, encodeUri (Stage.export newStage) )
+      ( { model | stage = newStage }, encodeUri (Stage.toString newStage) )
 
     OnUriEncoded encoded ->
       ( { model | stageEncoded = encoded }, Cmd.none )

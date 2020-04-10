@@ -1,7 +1,7 @@
 module Paku2 exposing (init)
 
 import Direction exposing (Direction(..))
-import Stage exposing (Stage, GameState(..), AiStrategyContext)
+import Stage exposing (Stage, State(..))
 import Ports exposing (encodeUri, onUriEncoded, decodeUri, onUriDecoded)
 
 import Dict exposing (Dict)
@@ -42,10 +42,10 @@ type alias Model =
   }
 
 type InputState
- = WaitForPlayerInput
- | WaitForEnemyTurn
- | ForceEnemyTurn -- タイマーリセットに必要
- | WaitForAnimation
+  = WaitForPlayerInput
+  | WaitForEnemyTurn
+  | ForceEnemyTurn -- タイマーリセットに必要
+  | WaitForAnimation
 
 type alias Flags =
   { stage : String }
@@ -75,7 +75,7 @@ type Msg
   = Nop
   | Tick
   | Key Direction
-  | EnemyTurn AiStrategyContext
+  | EnemyTurn Stage
   | StageSrcChanged String
   | LoadStage
   | AnimationFinished
@@ -88,14 +88,14 @@ update msg model =
         ( model, Cmd.none )
 
       Tick ->
-        if Stage.gameState model.stage /= Playing
+        if Stage.state model.stage /= Playing
         then
           ( model, Cmd.none )
         else
           ( model, requestEnemyTurn model.stage )
 
       Key direction ->
-        if Stage.gameState model.stage /= Playing
+        if Stage.state model.stage /= Playing
         then
           ( model, Cmd.none )
         else if model.inputState == WaitForEnemyTurn
@@ -107,33 +107,24 @@ update msg model =
               { model
               | stage = nextStage
               , inputState =
-                if Stage.gameState nextStage == GameOver
+                if Stage.state model.stage == Miss
                 then WaitForAnimation
                 else WaitForEnemyTurn
               }
           in
             ( newModel, Cmd.none )
 
-      EnemyTurn context ->
-        let
-          stage = context |> Stage.reflectOn model.stage
-          stageUpdated = { model | stage = stage }
-          nextStep = context |> Stage.nextStep stage
-        in case nextStep of
-          Nothing ->
-            ( { stageUpdated
-              | inputState =
-                if (stage |> Stage.gameState) == GameOver
-                then WaitForAnimation
-                else WaitForPlayerInput
-              , frame = model.frame + 1
-              }
-            , Cmd.none
-            )
-          Just strategy ->
-            ( stageUpdated
-            , strategy |> Random.generate EnemyTurn
-            )
+      EnemyTurn stage ->
+        ( { model
+          | stage = stage
+          , inputState =
+              if Stage.state stage == Miss
+              then WaitForAnimation
+              else WaitForPlayerInput
+          , frame = model.frame + 1
+          }
+        , Cmd.none
+        )
 
       StageSrcChanged src ->
         ( { model | stageSrc = src }
@@ -156,9 +147,9 @@ update msg model =
         )
 
 requestEnemyTurn stage =
-  case Stage.enemyTurnStart stage of
-    Just ets -> Random.generate EnemyTurn ets
-    Nothing -> Cmd.none
+  Stage.enemyTurn stage
+    |> Random.generate EnemyTurn
+
 
 forceTick model direction =
   ( { model | inputState = ForceEnemyTurn }
@@ -179,16 +170,16 @@ view model =
         [ Stage.view model.stage
         , buttons
         ]
-      else case model.stage |> Stage.gameState of
+      else case model.stage |> Stage.state of
         Playing ->
           [ Stage.view model.stage
           , buttons
           ]
-        Clear ->
+        Cleared ->
           [ Html.p[][text "くりあ～"]
           , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
           ]
-        GameOver ->
+        Miss ->
           [ Html.p[][text "ミス"]
           , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
           ]
