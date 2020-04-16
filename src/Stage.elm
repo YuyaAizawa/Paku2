@@ -90,15 +90,17 @@ put x y maybe stage =
   let
     map = case maybe of
       Nothing ->
-        stage.map |> Dict.remove ( x, y )
+        stage.map
+          |> Dict.remove ( x, y )
+
+      Just Paku ->
+        stage.map
+          |> Dict.remove (pakuPos stage)
+          |> Dict.insert ( x, y ) Paku
+
       Just obj ->
-        if obj == Paku
-        then
-          stage.map
-            |> Dict.remove (pakuPos stage)
-            |> Dict.insert ( x, y ) Paku
-        else
-          stage.map |> Dict.insert ( x, y ) obj
+        stage.map
+          |> Dict.insert ( x, y ) obj
   in
     { stage | map = map }
 
@@ -283,7 +285,7 @@ step pos obj stage =
               stage.map
                 |> Dict.remove pos
                 |> Dict.insert p2 o
-                |> Dict.insert pos (Pusher (d |> Direction.mirror) pusherWait)
+                |> Dict.insert p1 (Pusher (d |> Direction.mirror) pusherWait)
             CannotEntry ->
               stage.map
                 |> Dict.insert pos (Pusher (d |> Direction.mirror) pusherWait)
@@ -293,7 +295,9 @@ step pos obj stage =
 
     Pusher d n ->
       let
-        map = stage.map |> Dict.insert pos (Pusher d (n-1))
+        map =
+          stage.map
+            |> Dict.insert pos (Pusher d (n-1))
       in
         { stage | map = map } |> Random.constant
 
