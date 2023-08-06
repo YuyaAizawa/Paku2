@@ -6446,6 +6446,7 @@ var $elm$core$String$concat = function (strings) {
 };
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var $elm$core$String$fromFloat = _String_fromNumber;
 var $elm$core$List$intersperse = F2(
 	function (sep, xs) {
 		if (!xs.b) {
@@ -6468,7 +6469,6 @@ var $elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
 var $elm$svg$Svg$polygon = $elm$svg$Svg$trustedNode('polygon');
 var $elm$svg$Svg$polyline = $elm$svg$Svg$trustedNode('polyline');
 var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
-var $elm$svg$Svg$Attributes$transform = _VirtualDom_attribute('transform');
 var $author$project$Object$figureToSvg = function (obj) {
 	switch (obj.$) {
 		case 'Rectangle':
@@ -6483,13 +6483,13 @@ var $author$project$Object$figureToSvg = function (obj) {
 				_List_fromArray(
 					[
 						$elm$svg$Svg$Attributes$x(
-						$elm$core$String$fromInt(x_)),
+						$elm$core$String$fromFloat(x_)),
 						$elm$svg$Svg$Attributes$y(
-						$elm$core$String$fromInt(y_)),
+						$elm$core$String$fromFloat(y_)),
 						$elm$svg$Svg$Attributes$width(
-						$elm$core$String$fromInt(w_)),
+						$elm$core$String$fromFloat(w_)),
 						$elm$svg$Svg$Attributes$height(
-						$elm$core$String$fromInt(h_)),
+						$elm$core$String$fromFloat(h_)),
 						$elm$svg$Svg$Attributes$stroke(s_),
 						$elm$svg$Svg$Attributes$fill(f_)
 					]),
@@ -6512,7 +6512,7 @@ var $author$project$Object$figureToSvg = function (obj) {
 									function (_v1) {
 										var x_ = _v1.a;
 										var y_ = _v1.b;
-										return $elm$core$String$fromInt(x_) + (',' + $elm$core$String$fromInt(y_));
+										return $elm$core$String$fromFloat(x_) + (',' + $elm$core$String$fromFloat(y_));
 									},
 									pl)))),
 						$elm$svg$Svg$Attributes$stroke(s_),
@@ -6536,14 +6536,14 @@ var $author$project$Object$figureToSvg = function (obj) {
 									function (_v2) {
 										var x_ = _v2.a;
 										var y_ = _v2.b;
-										return $elm$core$String$fromInt(x_) + (',' + $elm$core$String$fromInt(y_));
+										return $elm$core$String$fromFloat(x_) + (',' + $elm$core$String$fromFloat(y_));
 									},
 									pl)))),
 						$elm$svg$Svg$Attributes$stroke(c_),
 						$elm$svg$Svg$Attributes$fill('none')
 					]),
 				_List_Nil);
-		case 'Circle':
+		default:
 			var x_ = obj.a;
 			var y_ = obj.b;
 			var r_ = obj.c;
@@ -6554,44 +6554,21 @@ var $author$project$Object$figureToSvg = function (obj) {
 				_List_fromArray(
 					[
 						$elm$svg$Svg$Attributes$cx(
-						$elm$core$String$fromInt(x_)),
+						$elm$core$String$fromFloat(x_)),
 						$elm$svg$Svg$Attributes$cy(
-						$elm$core$String$fromInt(y_)),
+						$elm$core$String$fromFloat(y_)),
 						$elm$svg$Svg$Attributes$r(
-						$elm$core$String$fromInt(r_)),
+						$elm$core$String$fromFloat(r_)),
 						$elm$svg$Svg$Attributes$stroke(s_),
 						$elm$svg$Svg$Attributes$fill(f_)
 					]),
 				_List_Nil);
-		case 'Rotate':
-			var deg = obj.a;
-			var figures = obj.b;
-			return A2(
-				$elm$svg$Svg$g,
-				_List_fromArray(
-					[
-						$elm$svg$Svg$Attributes$transform(
-						'rotate(' + ($elm$core$String$fromInt(deg) + ', 8, 8)'))
-					]),
-				A2($elm$core$List$map, $author$project$Object$figureToSvg, figures));
-		default:
-			var figures = obj.a;
-			return A2(
-				$elm$svg$Svg$g,
-				_List_fromArray(
-					[
-						$elm$svg$Svg$Attributes$transform('scale(-1, 1) translate(-16, 0)')
-					]),
-				A2($elm$core$List$map, $author$project$Object$figureToSvg, figures));
 	}
 };
 var $author$project$Object$Circle = F5(
 	function (a, b, c, d, e) {
 		return {$: 'Circle', a: a, b: b, c: c, d: d, e: e};
 	});
-var $author$project$Object$MirrorX = function (a) {
-	return {$: 'MirrorX', a: a};
-};
 var $author$project$Object$Polygon = F3(
 	function (a, b, c) {
 		return {$: 'Polygon', a: a, b: b, c: c};
@@ -6604,10 +6581,6 @@ var $author$project$Object$Rectangle = F6(
 	function (a, b, c, d, e, f) {
 		return {$: 'Rectangle', a: a, b: b, c: c, d: d, e: e, f: f};
 	});
-var $author$project$Object$Rotate = F2(
-	function (a, b) {
-		return {$: 'Rotate', a: a, b: b};
-	});
 var $author$project$Object$black = '#000000';
 var $author$project$Object$blue = '#0000FF';
 var $author$project$Object$darkBlue = '#000088';
@@ -6617,8 +6590,134 @@ var $author$project$Object$lightBlue = '#8888FF';
 var $author$project$Object$lightGray = '#AAAAAA';
 var $author$project$Object$lightYellow = '#FFFF88';
 var $author$project$Object$magenta = '#FF00FF';
+var $author$project$Object$mirrorXPoint = function (_v0) {
+	var x_ = _v0.a;
+	var y_ = _v0.b;
+	return _Utils_Tuple2($author$project$Object$chipSize - x_, y_);
+};
+var $author$project$Object$mirrorX = function (figure) {
+	switch (figure.$) {
+		case 'Rectangle':
+			var x_ = figure.a;
+			var y_ = figure.b;
+			var w_ = figure.c;
+			var h_ = figure.d;
+			var s_ = figure.e;
+			var f_ = figure.f;
+			var pl = _List_fromArray(
+				[
+					_Utils_Tuple2(x_, y_),
+					_Utils_Tuple2(x_ + w_, y_),
+					_Utils_Tuple2(x_ + w_, y_ + h_),
+					_Utils_Tuple2(x_, y_ + h_)
+				]);
+			return $author$project$Object$mirrorX(
+				A3($author$project$Object$Polygon, pl, s_, f_));
+		case 'Polygon':
+			var pl = figure.a;
+			var s_ = figure.b;
+			var f_ = figure.c;
+			return A3(
+				$author$project$Object$Polygon,
+				A2($elm$core$List$map, $author$project$Object$mirrorXPoint, pl),
+				s_,
+				f_);
+		case 'Polyline':
+			var pl = figure.a;
+			var s_ = figure.b;
+			return A2(
+				$author$project$Object$Polyline,
+				A2($elm$core$List$map, $author$project$Object$mirrorXPoint, pl),
+				s_);
+		default:
+			var x_ = figure.a;
+			var y_ = figure.b;
+			var r_ = figure.c;
+			var s_ = figure.d;
+			var f_ = figure.e;
+			var _v1 = $author$project$Object$mirrorXPoint(
+				_Utils_Tuple2(x_, y_));
+			var x__ = _v1.a;
+			var y__ = _v1.b;
+			return A5($author$project$Object$Circle, x__, y__, r_, s_, f_);
+	}
+};
 var $author$project$Object$none = 'none';
 var $author$project$Object$red = '#FF0000';
+var $elm$core$Basics$cos = _Basics_cos;
+var $elm$core$Basics$pi = _Basics_pi;
+var $elm$core$Basics$degrees = function (angleInDegrees) {
+	return (angleInDegrees * $elm$core$Basics$pi) / 180;
+};
+var $elm$core$Basics$sin = _Basics_sin;
+var $author$project$Object$rotatePoint = F2(
+	function (deg, _v0) {
+		var x_ = _v0.a;
+		var y_ = _v0.b;
+		var rad = $elm$core$Basics$degrees(deg);
+		var sin_ = $elm$core$Basics$sin(rad);
+		var halfChip = 0.5 * $author$project$Object$chipSize;
+		var cos_ = $elm$core$Basics$cos(rad);
+		return _Utils_Tuple2((((x_ - halfChip) * cos_) - ((y_ - halfChip) * sin_)) + halfChip, (((x_ - halfChip) * sin_) + ((y_ - halfChip) * cos_)) + halfChip);
+	});
+var $author$project$Object$rotate = F2(
+	function (degree, figure) {
+		switch (figure.$) {
+			case 'Rectangle':
+				var x_ = figure.a;
+				var y_ = figure.b;
+				var w_ = figure.c;
+				var h_ = figure.d;
+				var s_ = figure.e;
+				var f_ = figure.f;
+				var pl = _List_fromArray(
+					[
+						_Utils_Tuple2(x_, y_),
+						_Utils_Tuple2(x_ + w_, y_),
+						_Utils_Tuple2(x_ + w_, y_ + h_),
+						_Utils_Tuple2(x_, y_ + h_)
+					]);
+				return A2(
+					$author$project$Object$rotate,
+					degree,
+					A3($author$project$Object$Polygon, pl, s_, f_));
+			case 'Polygon':
+				var pl = figure.a;
+				var s_ = figure.b;
+				var f_ = figure.c;
+				return A3(
+					$author$project$Object$Polygon,
+					A2(
+						$elm$core$List$map,
+						$author$project$Object$rotatePoint(degree),
+						pl),
+					s_,
+					f_);
+			case 'Polyline':
+				var pl = figure.a;
+				var s_ = figure.b;
+				return A2(
+					$author$project$Object$Polyline,
+					A2(
+						$elm$core$List$map,
+						$author$project$Object$rotatePoint(degree),
+						pl),
+					s_);
+			default:
+				var x_ = figure.a;
+				var y_ = figure.b;
+				var r_ = figure.c;
+				var s_ = figure.d;
+				var f_ = figure.e;
+				var _v1 = A2(
+					$author$project$Object$rotatePoint,
+					degree,
+					_Utils_Tuple2(x_, y_));
+				var x__ = _v1.a;
+				var y__ = _v1.b;
+				return A5($author$project$Object$Circle, x__, y__, r_, s_, f_);
+		}
+	});
 var $author$project$Object$white = '#FFFFFF';
 var $author$project$Object$yellow = '#FFFF00';
 var $author$project$Object$tofigureList = function (obj) {
@@ -6626,13 +6725,13 @@ var $author$project$Object$tofigureList = function (obj) {
 		case 'Paku':
 			return _List_fromArray(
 				[
-					A5($author$project$Object$Circle, 8, 8, 6, $author$project$Object$black, $author$project$Object$green)
+					A5($author$project$Object$Circle, 8.0, 8.0, 6.0, $author$project$Object$black, $author$project$Object$green)
 				]);
 		case 'Wall':
 			return _List_fromArray(
 				[
-					A6($author$project$Object$Rectangle, 0, 0, 16, 16, $author$project$Object$none, $author$project$Object$lightGray),
-					A6($author$project$Object$Rectangle, 4, 4, 8, 8, $author$project$Object$white, $author$project$Object$none)
+					A6($author$project$Object$Rectangle, 0.0, 0.0, 16.0, 16.0, $author$project$Object$none, $author$project$Object$lightGray),
+					A6($author$project$Object$Rectangle, 4.0, 4.0, 8.0, 8.0, $author$project$Object$white, $author$project$Object$none)
 				]);
 		case 'Gem':
 			switch (obj.a.$) {
@@ -6644,9 +6743,9 @@ var $author$project$Object$tofigureList = function (obj) {
 							$author$project$Object$Polygon,
 							_List_fromArray(
 								[
-									_Utils_Tuple2(0, 8),
-									_Utils_Tuple2(8, 8),
-									_Utils_Tuple2(8, 0)
+									_Utils_Tuple2(0.0, 8.0),
+									_Utils_Tuple2(8.0, 8.0),
+									_Utils_Tuple2(8.0, 0.0)
 								]),
 							$author$project$Object$none,
 							$author$project$Object$lightBlue),
@@ -6654,9 +6753,9 @@ var $author$project$Object$tofigureList = function (obj) {
 							$author$project$Object$Polygon,
 							_List_fromArray(
 								[
-									_Utils_Tuple2(8, 0),
-									_Utils_Tuple2(8, 8),
-									_Utils_Tuple2(16, 8)
+									_Utils_Tuple2(8.0, 0.0),
+									_Utils_Tuple2(8.0, 8.0),
+									_Utils_Tuple2(16.0, 8.0)
 								]),
 							$author$project$Object$none,
 							$author$project$Object$darkBlue),
@@ -6664,9 +6763,9 @@ var $author$project$Object$tofigureList = function (obj) {
 							$author$project$Object$Polygon,
 							_List_fromArray(
 								[
-									_Utils_Tuple2(16, 8),
-									_Utils_Tuple2(8, 8),
-									_Utils_Tuple2(8, 16)
+									_Utils_Tuple2(16.0, 8.0),
+									_Utils_Tuple2(8.0, 8.0),
+									_Utils_Tuple2(8.0, 16.0)
 								]),
 							$author$project$Object$none,
 							$author$project$Object$blue),
@@ -6674,48 +6773,39 @@ var $author$project$Object$tofigureList = function (obj) {
 							$author$project$Object$Polygon,
 							_List_fromArray(
 								[
-									_Utils_Tuple2(8, 16),
-									_Utils_Tuple2(8, 8),
-									_Utils_Tuple2(0, 8)
+									_Utils_Tuple2(8.0, 16.0),
+									_Utils_Tuple2(8.0, 8.0),
+									_Utils_Tuple2(0.0, 8.0)
 								]),
 							$author$project$Object$none,
 							$author$project$Object$darkBlue)
 						]);
 				case 'Down':
 					var _v2 = obj.a;
-					return _List_fromArray(
-						[
-							A2(
-							$author$project$Object$Rotate,
-							180,
-							$author$project$Object$tofigureList(
-								A2($author$project$Object$Gem, $author$project$Direction$Up, 0)))
-						]);
+					return A2(
+						$elm$core$List$map,
+						$author$project$Object$rotate(180),
+						$author$project$Object$tofigureList(
+							A2($author$project$Object$Gem, $author$project$Direction$Up, 0)));
 				case 'Left':
 					var _v3 = obj.a;
-					return _List_fromArray(
-						[
-							A2(
-							$author$project$Object$Rotate,
-							270,
-							$author$project$Object$tofigureList(
-								A2($author$project$Object$Gem, $author$project$Direction$Up, 0)))
-						]);
+					return A2(
+						$elm$core$List$map,
+						$author$project$Object$rotate(270),
+						$author$project$Object$tofigureList(
+							A2($author$project$Object$Gem, $author$project$Direction$Up, 0)));
 				default:
 					var _v4 = obj.a;
-					return _List_fromArray(
-						[
-							A2(
-							$author$project$Object$Rotate,
-							90,
-							$author$project$Object$tofigureList(
-								A2($author$project$Object$Gem, $author$project$Direction$Up, 0)))
-						]);
+					return A2(
+						$elm$core$List$map,
+						$author$project$Object$rotate(90),
+						$author$project$Object$tofigureList(
+							A2($author$project$Object$Gem, $author$project$Direction$Up, 0)));
 			}
 		case 'Block':
 			return _List_fromArray(
 				[
-					A6($author$project$Object$Rectangle, 1, 1, 14, 14, $author$project$Object$black, $author$project$Object$yellow)
+					A6($author$project$Object$Rectangle, 1.0, 1.0, 14.0, 14.0, $author$project$Object$black, $author$project$Object$yellow)
 				]);
 		case 'Kiki':
 			switch (obj.a.$) {
@@ -6723,195 +6813,228 @@ var $author$project$Object$tofigureList = function (obj) {
 					var _v5 = obj.a;
 					return _List_fromArray(
 						[
-							A6($author$project$Object$Rectangle, 1, 1, 14, 14, $author$project$Object$black, $author$project$Object$yellow),
+							A6($author$project$Object$Rectangle, 1.0, 1.0, 14.0, 14.0, $author$project$Object$black, $author$project$Object$yellow),
 							A2(
 							$author$project$Object$Polyline,
 							_List_fromArray(
 								[
-									_Utils_Tuple2(8, 13),
-									_Utils_Tuple2(8, 3),
-									_Utils_Tuple2(3, 8),
-									_Utils_Tuple2(13, 8),
-									_Utils_Tuple2(8, 3)
+									_Utils_Tuple2(8.0, 13.0),
+									_Utils_Tuple2(8.0, 3.0),
+									_Utils_Tuple2(3.0, 8.0),
+									_Utils_Tuple2(13.0, 8.0),
+									_Utils_Tuple2(8.0, 3.0)
 								]),
 							$author$project$Object$red)
 						]);
 				case 'Down':
 					var _v6 = obj.a;
-					return _List_fromArray(
-						[
-							A2(
-							$author$project$Object$Rotate,
-							180,
-							$author$project$Object$tofigureList(
-								$author$project$Object$Kiki($author$project$Direction$Up)))
-						]);
+					return A2(
+						$elm$core$List$map,
+						$author$project$Object$rotate(180),
+						$author$project$Object$tofigureList(
+							$author$project$Object$Kiki($author$project$Direction$Up)));
 				case 'Left':
 					var _v7 = obj.a;
-					return _List_fromArray(
-						[
-							A2(
-							$author$project$Object$Rotate,
-							270,
-							$author$project$Object$tofigureList(
-								$author$project$Object$Kiki($author$project$Direction$Up)))
-						]);
+					return A2(
+						$elm$core$List$map,
+						$author$project$Object$rotate(270),
+						$author$project$Object$tofigureList(
+							$author$project$Object$Kiki($author$project$Direction$Up)));
 				default:
 					var _v8 = obj.a;
-					return _List_fromArray(
-						[
-							A2(
-							$author$project$Object$Rotate,
-							90,
-							$author$project$Object$tofigureList(
-								$author$project$Object$Kiki($author$project$Direction$Up)))
-						]);
+					return A2(
+						$elm$core$List$map,
+						$author$project$Object$rotate(90),
+						$author$project$Object$tofigureList(
+							$author$project$Object$Kiki($author$project$Direction$Up)));
 			}
 		case 'ClockwiseBlock':
 			return _List_fromArray(
 				[
-					A6($author$project$Object$Rectangle, 1, 1, 14, 14, $author$project$Object$black, $author$project$Object$yellow),
+					A6($author$project$Object$Rectangle, 1.0, 1.0, 14.0, 14.0, $author$project$Object$black, $author$project$Object$yellow),
 					A2(
 					$author$project$Object$Polyline,
 					_List_fromArray(
 						[
-							_Utils_Tuple2(11, 11),
-							_Utils_Tuple2(5, 11),
-							_Utils_Tuple2(5, 5),
-							_Utils_Tuple2(11, 5),
-							_Utils_Tuple2(8, 8)
+							_Utils_Tuple2(11.0, 11.0),
+							_Utils_Tuple2(5.0, 11.0),
+							_Utils_Tuple2(5.0, 5.0),
+							_Utils_Tuple2(11.0, 5.0),
+							_Utils_Tuple2(8.0, 8.0)
 						]),
 					$author$project$Object$red)
 				]);
 		case 'AntiClockwiseBlock':
-			return _List_fromArray(
-				[
-					$author$project$Object$MirrorX(
-					$author$project$Object$tofigureList($author$project$Object$ClockwiseBlock))
-				]);
+			return A2(
+				$elm$core$List$map,
+				$author$project$Object$mirrorX,
+				$author$project$Object$tofigureList($author$project$Object$ClockwiseBlock));
 		case 'CrackedBlock':
 			return _List_fromArray(
 				[
-					A6($author$project$Object$Rectangle, 1, 1, 14, 14, $author$project$Object$gray, $author$project$Object$lightYellow)
+					A6($author$project$Object$Rectangle, 1.0, 1.0, 14.0, 14.0, $author$project$Object$gray, $author$project$Object$lightYellow)
 				]);
 		case 'Spinner':
 			var i = obj.a;
-			return $elm$core$List$singleton(
-				A2(
-					$author$project$Object$Rotate,
-					i * 30,
-					_List_fromArray(
-						[
-							A3(
-							$author$project$Object$Polygon,
-							_List_fromArray(
-								[
-									_Utils_Tuple2(5, 1),
-									_Utils_Tuple2(11, 1),
-									_Utils_Tuple2(11, 3),
-									_Utils_Tuple2(9, 3),
-									_Utils_Tuple2(9, 7),
-									_Utils_Tuple2(13, 7),
-									_Utils_Tuple2(13, 5),
-									_Utils_Tuple2(15, 5),
-									_Utils_Tuple2(15, 11),
-									_Utils_Tuple2(13, 11),
-									_Utils_Tuple2(13, 9),
-									_Utils_Tuple2(9, 9),
-									_Utils_Tuple2(9, 13),
-									_Utils_Tuple2(11, 13),
-									_Utils_Tuple2(11, 15),
-									_Utils_Tuple2(5, 15),
-									_Utils_Tuple2(5, 13),
-									_Utils_Tuple2(7, 13),
-									_Utils_Tuple2(7, 9),
-									_Utils_Tuple2(3, 9),
-									_Utils_Tuple2(3, 11),
-									_Utils_Tuple2(1, 11),
-									_Utils_Tuple2(1, 5),
-									_Utils_Tuple2(3, 5),
-									_Utils_Tuple2(3, 7),
-									_Utils_Tuple2(7, 7),
-									_Utils_Tuple2(7, 3),
-									_Utils_Tuple2(5, 3)
-								]),
-							$author$project$Object$none,
-							$author$project$Object$black),
-							A5($author$project$Object$Circle, 8, 8, 3, $author$project$Object$black, $author$project$Object$magenta)
-						])));
+			return A2(
+				$elm$core$List$map,
+				$author$project$Object$rotate(i * 30.0),
+				_List_fromArray(
+					[
+						A3(
+						$author$project$Object$Polygon,
+						_List_fromArray(
+							[
+								_Utils_Tuple2(5.0, 1.0),
+								_Utils_Tuple2(11.0, 1.0),
+								_Utils_Tuple2(11.0, 3.0),
+								_Utils_Tuple2(9.0, 3.0),
+								_Utils_Tuple2(9.0, 7.0),
+								_Utils_Tuple2(13.0, 7.0),
+								_Utils_Tuple2(13.0, 5.0),
+								_Utils_Tuple2(15.0, 5.0),
+								_Utils_Tuple2(15.0, 11.0),
+								_Utils_Tuple2(13.0, 11.0),
+								_Utils_Tuple2(13.0, 9.0),
+								_Utils_Tuple2(9.0, 9.0),
+								_Utils_Tuple2(9.0, 13.0),
+								_Utils_Tuple2(11.0, 13.0),
+								_Utils_Tuple2(11.0, 15.0),
+								_Utils_Tuple2(5.0, 15.0),
+								_Utils_Tuple2(5.0, 13.0),
+								_Utils_Tuple2(7.0, 13.0),
+								_Utils_Tuple2(7.0, 9.0),
+								_Utils_Tuple2(3.0, 9.0),
+								_Utils_Tuple2(3.0, 11.0),
+								_Utils_Tuple2(1.0, 11.0),
+								_Utils_Tuple2(1.0, 5.0),
+								_Utils_Tuple2(3.0, 5.0),
+								_Utils_Tuple2(3.0, 7.0),
+								_Utils_Tuple2(7.0, 7.0),
+								_Utils_Tuple2(7.0, 3.0),
+								_Utils_Tuple2(5.0, 3.0)
+							]),
+						$author$project$Object$none,
+						$author$project$Object$black),
+						A5($author$project$Object$Circle, 8.0, 8.0, 3.0, $author$project$Object$black, $author$project$Object$magenta)
+					]));
 		default:
 			switch (obj.a.$) {
 				case 'Up':
 					var _v9 = obj.a;
 					return _List_fromArray(
 						[
-							A6($author$project$Object$Rectangle, 2, 7, 12, 6, $author$project$Object$red, $author$project$Object$yellow),
+							A6($author$project$Object$Rectangle, 2.0, 7.0, 12.0, 6.0, $author$project$Object$red, $author$project$Object$yellow),
 							A3(
 							$author$project$Object$Polygon,
 							_List_fromArray(
 								[
-									_Utils_Tuple2(8, 2),
-									_Utils_Tuple2(14, 7),
-									_Utils_Tuple2(2, 7)
+									_Utils_Tuple2(8.0, 2.0),
+									_Utils_Tuple2(14.0, 7.0),
+									_Utils_Tuple2(2.0, 7.0)
 								]),
 							$author$project$Object$none,
 							$author$project$Object$red),
-							A6($author$project$Object$Rectangle, 6, 7, 4, 6, $author$project$Object$none, $author$project$Object$red)
+							A6($author$project$Object$Rectangle, 6.0, 7.0, 4.0, 6.0, $author$project$Object$none, $author$project$Object$red)
 						]);
 				case 'Down':
 					var _v10 = obj.a;
-					return _List_fromArray(
-						[
-							A2(
-							$author$project$Object$Rotate,
-							180,
-							$author$project$Object$tofigureList(
-								A2($author$project$Object$Pusher, $author$project$Direction$Up, 0)))
-						]);
+					return A2(
+						$elm$core$List$map,
+						$author$project$Object$rotate(180),
+						$author$project$Object$tofigureList(
+							A2($author$project$Object$Pusher, $author$project$Direction$Up, 0)));
 				case 'Left':
 					var _v11 = obj.a;
-					return _List_fromArray(
-						[
-							A2(
-							$author$project$Object$Rotate,
-							270,
-							$author$project$Object$tofigureList(
-								A2($author$project$Object$Pusher, $author$project$Direction$Up, 0)))
-						]);
+					return A2(
+						$elm$core$List$map,
+						$author$project$Object$rotate(270),
+						$author$project$Object$tofigureList(
+							A2($author$project$Object$Pusher, $author$project$Direction$Up, 0)));
 				default:
 					var _v12 = obj.a;
-					return _List_fromArray(
-						[
-							A2(
-							$author$project$Object$Rotate,
-							90,
-							$author$project$Object$tofigureList(
-								A2($author$project$Object$Pusher, $author$project$Direction$Up, 0)))
-						]);
+					return A2(
+						$elm$core$List$map,
+						$author$project$Object$rotate(90),
+						$author$project$Object$tofigureList(
+							A2($author$project$Object$Pusher, $author$project$Direction$Up, 0)));
 			}
 	}
 };
+var $author$project$Object$translatePoint = F3(
+	function (offsetX, offsetY, _v0) {
+		var x_ = _v0.a;
+		var y_ = _v0.b;
+		return _Utils_Tuple2(x_ + offsetX, y_ + offsetY);
+	});
 var $author$project$Object$translate = F3(
-	function (x, y, contents) {
-		return A2(
-			$elm$svg$Svg$g,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$transform(
-					'translate(' + ($elm$core$String$fromInt(x) + (', ' + ($elm$core$String$fromInt(y) + ')'))))
-				]),
-			contents);
+	function (offsetX, offsetY, figure) {
+		switch (figure.$) {
+			case 'Rectangle':
+				var x_ = figure.a;
+				var y_ = figure.b;
+				var w_ = figure.c;
+				var h_ = figure.d;
+				var s_ = figure.e;
+				var f_ = figure.f;
+				var _v1 = A3(
+					$author$project$Object$translatePoint,
+					offsetX,
+					offsetY,
+					_Utils_Tuple2(x_, y_));
+				var x__ = _v1.a;
+				var y__ = _v1.b;
+				return A6($author$project$Object$Rectangle, x__, y__, w_, h_, s_, f_);
+			case 'Polygon':
+				var pl = figure.a;
+				var s_ = figure.b;
+				var f_ = figure.c;
+				return A3(
+					$author$project$Object$Polygon,
+					A2(
+						$elm$core$List$map,
+						A2($author$project$Object$translatePoint, offsetX, offsetY),
+						pl),
+					s_,
+					f_);
+			case 'Polyline':
+				var pl = figure.a;
+				var s_ = figure.b;
+				return A2(
+					$author$project$Object$Polyline,
+					A2(
+						$elm$core$List$map,
+						A2($author$project$Object$translatePoint, offsetX, offsetY),
+						pl),
+					s_);
+			default:
+				var x_ = figure.a;
+				var y_ = figure.b;
+				var r_ = figure.c;
+				var s_ = figure.d;
+				var f_ = figure.e;
+				var _v2 = A3(
+					$author$project$Object$translatePoint,
+					offsetX,
+					offsetY,
+					_Utils_Tuple2(x_, y_));
+				var x__ = _v2.a;
+				var y__ = _v2.b;
+				return A5($author$project$Object$Circle, x__, y__, r_, s_, f_);
+		}
 	});
 var $author$project$Object$toSvg = F3(
 	function (chipOffsetX, chipOffsetY, obj) {
-		return A3(
-			$author$project$Object$translate,
-			chipOffsetX * $author$project$Object$chipSize,
-			chipOffsetY * $author$project$Object$chipSize,
+		return A2(
+			$elm$svg$Svg$g,
+			_List_Nil,
 			A2(
 				$elm$core$List$map,
 				$author$project$Object$figureToSvg,
-				$author$project$Object$tofigureList(obj)));
+				A2(
+					$elm$core$List$map,
+					A2($author$project$Object$translate, chipOffsetX * $author$project$Object$chipSize, chipOffsetY * $author$project$Object$chipSize),
+					$author$project$Object$tofigureList(obj))));
 	});
 var $author$project$Stage$view = function (stage) {
 	var _v0 = $author$project$Stage$pakuPos(stage);
