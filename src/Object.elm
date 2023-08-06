@@ -54,8 +54,9 @@ toSvg : Int -> Int -> Object -> Svg msg
 toSvg chipOffsetX chipOffsetY obj =
   obj
     |> tofigureList
+    |> List.map (translate (toFloat (chipOffsetX * chipSize)) (toFloat (chipOffsetY * chipSize)))
     |> List.map figureToSvg
-    |> translate (chipOffsetX * chipSize) (chipOffsetY * chipSize)
+    |> Svg.g []
 
 touchArea : Int -> Int -> msg -> Svg msg
 touchArea chipOffsetX chipOffsetY msg =
@@ -89,91 +90,90 @@ tofigureList : Object -> List Figure
 tofigureList obj =
   case obj of
     Paku ->
-      [ Circle 8 8 6 black green ]
+      [ Circle 8.0 8.0 6.0 black green ]
 
     Wall ->
-      [ Rectangle 0 0 16 16 none lightGray
-      , Rectangle 4 4 8 8 white none
+      [ Rectangle 0.0 0.0 16.0 16.0 none lightGray
+      , Rectangle 4.0 4.0 8.0 8.0 white none
       ]
 
     Gem Up _ ->
-      [ Polygon [(0, 8), (8, 8), (8, 0)] none lightBlue
-      , Polygon [(8, 0), (8, 8), (16, 8)] none darkBlue
-      , Polygon [(16, 8), (8, 8), (8, 16)] none blue
-      , Polygon [(8, 16), (8, 8), (0, 8)] none darkBlue
+      [ Polygon [(0.0, 8.0), (8.0, 8.0), (8.0, 0.0)] none lightBlue
+      , Polygon [(8.0, 0.0), (8.0, 8.0), (16.0, 8.0)] none darkBlue
+      , Polygon [(16.0, 8.0), (8.0, 8.0), (8.0, 16.0)] none blue
+      , Polygon [(8.0, 16.0), (8.0, 8.0), (0.0, 8.0)] none darkBlue
       ]
     Gem Down _ ->
-      [ Gem Up 0 |> tofigureList |> Rotate 180 ]
+      Gem Up 0 |> tofigureList |> List.map (rotate 180)
     Gem Left _->
-      [ Gem Up 0 |> tofigureList |> Rotate 270 ]
+      Gem Up 0 |> tofigureList |> List.map (rotate 270)
     Gem Right _->
-      [ Gem Up 0 |> tofigureList |> Rotate 90 ]
+      Gem Up 0 |> tofigureList |> List.map (rotate 90)
 
     Block ->
-      [ Rectangle 1 1 14 14 black yellow ]
+      [ Rectangle 1.0 1.0 14.0 14.0 black yellow ]
 
     Kiki Up ->
-      [ Rectangle 1 1 14 14 black yellow
-      , Polyline [(8, 13), (8, 3), (3, 8), (13, 8), (8, 3)] red
+      [ Rectangle 1.0 1.0 14.0 14.0 black yellow
+      , Polyline [(8.0, 13.0), (8.0, 3.0), (3.0, 8.0), (13.0, 8.0), (8.0, 3.0)] red
       ]
     Kiki Down ->
-      [ Kiki Up |> tofigureList |> Rotate 180 ]
+      Kiki Up |> tofigureList |> List.map (rotate 180)
     Kiki Left ->
-      [ Kiki Up |> tofigureList |> Rotate 270 ]
+      Kiki Up |> tofigureList |> List.map (rotate 270)
     Kiki Right ->
-      [ Kiki Up |> tofigureList |> Rotate 90 ]
+      Kiki Up |> tofigureList |> List.map (rotate 90)
 
     ClockwiseBlock ->
-      [ Rectangle 1 1 14 14 black yellow
-      , Polyline [(11, 11), (5, 11), (5, 5), (11, 5), (8, 8)] red
+      [ Rectangle 1.0 1.0 14.0 14.0 black yellow
+      , Polyline [(11.0, 11.0), (5.0, 11.0), (5.0, 5.0), (11.0, 5.0), (8.0, 8.0)] red
       ]
 
     AntiClockwiseBlock ->
-      [ ClockwiseBlock |> tofigureList |> MirrorX ]
+      ClockwiseBlock |> tofigureList |> List.map mirrorX
 
     CrackedBlock ->
-      [ Rectangle 1 1 14 14 gray lightYellow ]
+      [ Rectangle 1.0 1.0 14.0 14.0 gray lightYellow ]
 
     Spinner i ->
       [ Polygon
-        [ ( 5,  1), (11,  1), (11,  3), ( 9,  3), (9, 7), (13,  7), (13,  5)
-        , (15,  5), (15, 11), (13, 11), (13,  9), (9, 9), ( 9, 13), (11, 13)
-        , (11, 15), ( 5, 15), ( 5, 13), ( 7, 13), (7, 9), ( 3,  9), ( 3, 11)
-        , ( 1, 11), ( 1,  5), ( 3,  5), ( 3,  7), (7, 7), ( 7,  3), ( 5,  3)
+        [ ( 5.0,  1.0), (11.0,  1.0), (11.0,  3.0), ( 9.0,  3.0), (9.0, 7.0), (13.0,  7.0), (13.0,  5.0)
+        , (15.0,  5.0), (15.0, 11.0), (13.0, 11.0), (13.0,  9.0), (9.0, 9.0), ( 9.0, 13.0), (11.0, 13.0)
+        , (11.0, 15.0), ( 5.0, 15.0), ( 5.0, 13.0), ( 7.0, 13.0), (7.0, 9.0), ( 3.0,  9.0), ( 3.0, 11.0)
+        , ( 1.0, 11.0), ( 1.0,  5.0), ( 3.0,  5.0), ( 3.0,  7.0), (7.0, 7.0), ( 7.0,  3.0), ( 5.0,  3.0)
         ] none black
-      , Circle 8 8 3 black magenta
+      , Circle 8.0 8.0 3.0 black magenta
       ]
-        |> Rotate (i * 30)
-        |> List.singleton
+        |> List.map (rotate (toFloat i * 30.0))
 
     Pusher Up _ ->
-      [ Rectangle 2 7 12 6 red yellow
-      , Polygon [(8, 2), (14, 7), (2, 7)] none red
-      , Rectangle 6 7 4 6 none red
+      [ Rectangle 2.0 7.0 12.0 6.0 red yellow
+      , Polygon [(8.0, 2.0), (14.0, 7.0), (2.0, 7.0)] none red
+      , Rectangle 6.0 7.0 4.0 6.0 none red
       ]
     Pusher Down _ ->
-      [ Pusher Up 0 |> tofigureList |> Rotate 180 ]
+      Pusher Up 0 |> tofigureList |> List.map (rotate 180)
     Pusher Left _ ->
-      [ Pusher Up 0 |> tofigureList |> Rotate 270 ]
+      Pusher Up 0 |> tofigureList |> List.map (rotate 270)
     Pusher Right _ ->
-      [ Pusher Up 0 |> tofigureList |> Rotate 90 ]
+      Pusher Up 0 |> tofigureList |> List.map (rotate 90)
+
+
 
 type Figure
-  = Rectangle Int Int Int Int Color Color
-  | Polygon (List (Int, Int)) Color Color
-  | Polyline (List (Int, Int)) Color
-  | Circle Int Int Int Color Color
-  | Rotate Int (List Figure)
-  | MirrorX (List Figure)
+  = Rectangle Float Float Float Float Color Color
+  | Polygon (List (Float, Float)) Color Color
+  | Polyline (List (Float, Float)) Color
+  | Circle Float Float Float Color Color
 
 figureToSvg obj =
   case obj of
     Rectangle x_ y_ w_ h_ s_ f_ ->
       rect
-        [ x <| String.fromInt <| x_
-        , y <| String.fromInt <| y_
-        , width <| String.fromInt <| w_
-        , height <| String.fromInt <| h_
+        [ x <| String.fromFloat <| x_
+        , y <| String.fromFloat <| y_
+        , width <| String.fromFloat <| w_
+        , height <| String.fromFloat <| h_
         , stroke s_
         , fill f_
         ][]
@@ -182,7 +182,7 @@ figureToSvg obj =
       polygon
         [ points (
           pl
-            |> List.map (\(x_, y_) -> String.fromInt x_ ++ "," ++ String.fromInt y_)
+            |> List.map (\(x_, y_) -> String.fromFloat x_ ++ "," ++ String.fromFloat y_)
             |> List.intersperse " "
             |> String.concat)
         , stroke s_
@@ -193,7 +193,7 @@ figureToSvg obj =
       polyline
         [ points (
           pl
-            |> List.map (\(x_, y_) -> String.fromInt x_ ++ "," ++ String.fromInt y_)
+            |> List.map (\(x_, y_) -> String.fromFloat x_ ++ "," ++ String.fromFloat y_)
             |> List.intersperse " "
             |> String.concat)
         , stroke c_
@@ -202,28 +202,94 @@ figureToSvg obj =
 
     Circle x_ y_ r_ s_ f_ ->
       circle
-        [ cx <| String.fromInt <| x_
-        , cy <| String.fromInt <| y_
-        , r <| String.fromInt <| r_
+        [ cx <| String.fromFloat <| x_
+        , cy <| String.fromFloat <| y_
+        , r <| String.fromFloat <| r_
         , stroke s_
         , fill f_
         ][]
 
-    Rotate deg figures ->
-      g
-        [ transform <| "rotate(" ++ String.fromInt deg ++ ", 8, 8)"]
-        (figures |> List.map figureToSvg)
+translate : Float -> Float -> Figure -> Figure
+translate offsetX offsetY figure =
+  case figure of
+    Rectangle x_ y_ w_ h_ s_ f_ ->
+      let
+        (x__, y__) = translatePoint offsetX offsetY (x_, y_)
+      in
+        Rectangle x__ y__ w_ h_ s_ f_
 
-    MirrorX figures ->
-      g
-        [ transform "scale(-1, 1) translate(-16, 0)" ]
-        (figures |> List.map figureToSvg)
+    Polygon pl s_ f_ ->
+      Polygon (pl |> List.map (translatePoint offsetX offsetY)) s_ f_
 
-translate : Int -> Int -> List (Svg msg) -> Svg msg
-translate x y contents =
-  Svg.g
-    [ transform <| "translate(" ++ String.fromInt x ++ ", " ++ String.fromInt y ++ ")" ]
-    contents
+    Polyline pl s_ ->
+      Polyline (pl |> List.map (translatePoint offsetX offsetY)) s_
+
+    Circle x_ y_ r_ s_ f_ ->
+      let
+        (x__, y__) = translatePoint offsetX offsetY (x_, y_)
+      in
+        Circle x__ y__ r_ s_ f_
+
+translatePoint offsetX offsetY (x_, y_) =
+  (x_ + offsetX, y_ + offsetY)
+
+mirrorX : Figure -> Figure
+mirrorX figure =
+  case figure of
+    Rectangle x_ y_ w_ h_ s_ f_ ->
+      let
+        pl = [ (x_, y_), (x_ + w_, y_),(x_ + w_, y_ + h_),(x_, y_ + h_) ]
+      in
+        Polygon pl s_ f_
+          |> mirrorX
+
+    Polygon pl s_ f_ ->
+      Polygon (pl |> List.map mirrorXPoint) s_ f_
+
+    Polyline pl s_ ->
+      Polyline (pl |> List.map mirrorXPoint) s_
+
+    Circle x_ y_ r_ s_ f_ ->
+      let
+        (x__, y__) = mirrorXPoint (x_, y_)
+      in
+        Circle x__ y__ r_ s_ f_
+
+mirrorXPoint (x_, y_) =
+  (chipSize - x_, y_)
+
+rotate : Float -> Figure -> Figure
+rotate degree figure =
+  case figure of
+    Rectangle x_ y_ w_ h_ s_ f_ ->
+      let
+        pl = [ (x_, y_), (x_ + w_, y_),(x_ + w_, y_ + h_),(x_, y_ + h_) ]
+      in
+        Polygon pl s_ f_
+          |> rotate degree
+
+    Polygon pl s_ f_ ->
+      Polygon (pl |> List.map (rotatePoint degree)) s_ f_
+
+    Polyline pl s_ ->
+      Polyline (pl |> List.map (rotatePoint degree)) s_
+
+    Circle x_ y_ r_ s_ f_ ->
+      let
+        (x__, y__) = rotatePoint degree (x_, y_)
+      in
+        Circle x__ y__ r_ s_ f_
+
+rotatePoint deg (x_, y_) =
+  let
+    rad = degrees deg
+    sin_ = sin rad
+    cos_ = cos rad
+    halfChip = 0.5 * chipSize
+  in
+    ( (x_ - halfChip) * cos_ - (y_ - halfChip) * sin_ + halfChip
+    , (x_ - halfChip) * sin_ + (y_ - halfChip) * cos_ + halfChip
+    )
 
 fadeOut : Svg msg -> Svg msg
 fadeOut content =
