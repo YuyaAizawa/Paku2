@@ -76,14 +76,12 @@ fromDict map =
   , miss = False
   }
 
-
 type EntryType
   = JustEntry
   | PushEntry Object
   | TakeEntry Object
   | CannotEntry
   | CannotEntryAndDamaged
-
 
 put : Int -> Int -> Maybe Object -> Stage -> Stage
 put x y maybe stage =
@@ -168,14 +166,12 @@ move direction stage =
       , miss = miss
       }
 
-
 towards direction (x, y) =
   case direction of
         Up ->    (x    , y - 1)
         Down ->  (x    , y + 1)
         Left ->  (x - 1, y    )
         Right -> (x + 1, y    )
-
 
 enemyTurn : Stage -> Random.Generator Stage
 enemyTurn stage =
@@ -303,7 +299,6 @@ step pos obj stage =
 
     _ -> stage |> Random.constant
 
-
 pakuPos : Stage -> Coord
 pakuPos stage =
   stage.map
@@ -381,8 +376,8 @@ view stage =
     )
 
 
-coordsToString (x, y) =
-  "(" ++ String.fromInt x ++ ", " ++ String.fromInt y ++ ")"
+
+-- SERIALIZE --
 
 toString : Stage -> String
 toString stage =
