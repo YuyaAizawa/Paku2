@@ -4310,43 +4310,6 @@ function _Browser_load(url)
 		}
 	}));
 }
-
-
-
-var _Bitwise_and = F2(function(a, b)
-{
-	return a & b;
-});
-
-var _Bitwise_or = F2(function(a, b)
-{
-	return a | b;
-});
-
-var _Bitwise_xor = F2(function(a, b)
-{
-	return a ^ b;
-});
-
-function _Bitwise_complement(a)
-{
-	return ~a;
-};
-
-var _Bitwise_shiftLeftBy = F2(function(offset, a)
-{
-	return a << offset;
-});
-
-var _Bitwise_shiftRightBy = F2(function(offset, a)
-{
-	return a >> offset;
-});
-
-var _Bitwise_shiftRightZfBy = F2(function(offset, a)
-{
-	return a >>> offset;
-});
 var $elm$core$List$cons = _List_cons;
 var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var $elm$core$Array$foldr = F3(
@@ -5503,7 +5466,7 @@ var $author$project$Stage$fromString = function (src) {
 var $author$project$StageEditor$init = function (flags) {
 	return _Utils_Tuple2(
 		{
-			palletIndex: 0,
+			palletIndex: _Utils_Tuple2(0, 0),
 			stage: $author$project$Stage$fromString(flags.stage),
 			stageEncoded: ''
 		},
@@ -5531,107 +5494,86 @@ var $elm$core$Maybe$andThen = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
-var $elm$core$Bitwise$and = _Bitwise_and;
-var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
-var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
-var $elm$core$Basics$ge = _Utils_ge;
-var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
-var $elm$core$Array$getHelp = F3(
-	function (shift, index, tree) {
-		getHelp:
+var $author$project$StageEditor$at = F2(
+	function (index, list) {
+		at:
 		while (true) {
-			var pos = $elm$core$Array$bitMask & (index >>> shift);
-			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
-			if (_v0.$ === 'SubTree') {
-				var subTree = _v0.a;
-				var $temp$shift = shift - $elm$core$Array$shiftStep,
-					$temp$index = index,
-					$temp$tree = subTree;
-				shift = $temp$shift;
-				index = $temp$index;
-				tree = $temp$tree;
-				continue getHelp;
+			if (!list.b) {
+				return $elm$core$Maybe$Nothing;
 			} else {
-				var values = _v0.a;
-				return A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, values);
+				var hd = list.a;
+				var tl = list.b;
+				if (!index) {
+					return $elm$core$Maybe$Just(hd);
+				} else {
+					var $temp$index = index - 1,
+						$temp$list = tl;
+					index = $temp$index;
+					list = $temp$list;
+					continue at;
+				}
 			}
 		}
-	});
-var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
-var $elm$core$Array$tailIndex = function (len) {
-	return (len >>> 5) << 5;
-};
-var $elm$core$Array$get = F2(
-	function (index, _v0) {
-		var len = _v0.a;
-		var startShift = _v0.b;
-		var tree = _v0.c;
-		var tail = _v0.d;
-		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(
-			index,
-			$elm$core$Array$tailIndex(len)) > -1) ? $elm$core$Maybe$Just(
-			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
-			A3($elm$core$Array$getHelp, startShift, index, tree)));
 	});
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $elm$core$Array$fromListHelp = F3(
-	function (list, nodeList, nodeListSize) {
-		fromListHelp:
-		while (true) {
-			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, list);
-			var jsArray = _v0.a;
-			var remainingItems = _v0.b;
-			if (_Utils_cmp(
-				$elm$core$Elm$JsArray$length(jsArray),
-				$elm$core$Array$branchFactor) < 0) {
-				return A2(
-					$elm$core$Array$builderToArray,
-					true,
-					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
-			} else {
-				var $temp$list = remainingItems,
-					$temp$nodeList = A2(
-					$elm$core$List$cons,
-					$elm$core$Array$Leaf(jsArray),
-					nodeList),
-					$temp$nodeListSize = nodeListSize + 1;
-				list = $temp$list;
-				nodeList = $temp$nodeList;
-				nodeListSize = $temp$nodeListSize;
-				continue fromListHelp;
-			}
-		}
-	});
-var $elm$core$Array$fromList = function (list) {
-	if (!list.b) {
-		return $elm$core$Array$empty;
-	} else {
-		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
-	}
-};
-var $author$project$StageEditor$palletList = $elm$core$Array$fromList(
-	A2(
-		$elm$core$List$cons,
-		$elm$core$Maybe$Nothing,
-		A2(
-			$elm$core$List$map,
-			function (o) {
-				return $elm$core$Maybe$Just(o);
-			},
-			_List_fromArray(
-				[
-					$author$project$Object$Paku,
-					$author$project$Object$Wall,
-					A2($author$project$Object$Gem, $author$project$Direction$Up, 0),
-					$author$project$Object$Block,
-					$author$project$Object$Kiki($author$project$Direction$Up),
-					$author$project$Object$ClockwiseBlock,
-					$author$project$Object$AntiClockwiseBlock,
-					$author$project$Object$CrackedBlock,
-					$author$project$Object$Spinner(0),
-					A2($author$project$Object$Pusher, $author$project$Direction$Up, 0)
-				]))));
+var $author$project$StageEditor$palletList = _List_fromArray(
+	[
+		_List_fromArray(
+		[
+			$elm$core$Maybe$Just($author$project$Object$Paku),
+			$elm$core$Maybe$Just($author$project$Object$Wall),
+			$elm$core$Maybe$Just(
+			A2($author$project$Object$Gem, $author$project$Direction$Up, 0)),
+			$elm$core$Maybe$Just($author$project$Object$Block),
+			$elm$core$Maybe$Just(
+			$author$project$Object$Kiki($author$project$Direction$Up)),
+			$elm$core$Maybe$Just($author$project$Object$ClockwiseBlock),
+			$elm$core$Maybe$Just(
+			$author$project$Object$Spinner(0)),
+			$elm$core$Maybe$Just(
+			A2($author$project$Object$Pusher, $author$project$Direction$Up, 0))
+		]),
+		_List_fromArray(
+		[
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Just($author$project$Object$CrackedBlock),
+			$elm$core$Maybe$Just(
+			$author$project$Object$Kiki($author$project$Direction$Right)),
+			$elm$core$Maybe$Just($author$project$Object$AntiClockwiseBlock),
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Just(
+			A2($author$project$Object$Pusher, $author$project$Direction$Right, 0))
+		]),
+		_List_fromArray(
+		[
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Just(
+			$author$project$Object$Kiki($author$project$Direction$Down)),
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Just(
+			A2($author$project$Object$Pusher, $author$project$Direction$Down, 0))
+		]),
+		_List_fromArray(
+		[
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Just(
+			$author$project$Object$Kiki($author$project$Direction$Left)),
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Just(
+			A2($author$project$Object$Pusher, $author$project$Direction$Left, 0))
+		])
+	]);
 var $elm$core$List$head = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -6188,27 +6130,32 @@ var $author$project$Stage$toString = function (stage) {
 var $author$project$StageEditor$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
-			case 'PalletChanged':
-				var index = msg.a;
+			case 'PalletClicked':
+				var x = msg.a;
+				var y = msg.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{palletIndex: index}),
+						{
+							palletIndex: _Utils_Tuple2(x, y)
+						}),
 					$elm$core$Platform$Cmd$none);
 			case 'StageClicked':
 				var x = msg.a;
 				var y = msg.b;
-				var newStage = A4(
-					$author$project$Stage$put,
-					x,
-					y,
+				var _v1 = model.palletIndex;
+				var px = _v1.a;
+				var py = _v1.b;
+				var maybeObj = A2(
+					$elm$core$Maybe$andThen,
+					function (o) {
+						return o;
+					},
 					A2(
 						$elm$core$Maybe$andThen,
-						function (a) {
-							return _Utils_eq(a, $elm$core$Maybe$Nothing) ? $elm$core$Maybe$Nothing : a;
-						},
-						A2($elm$core$Array$get, model.palletIndex, $author$project$StageEditor$palletList)),
-					model.stage);
+						$author$project$StageEditor$at(px),
+						A2($author$project$StageEditor$at, py, $author$project$StageEditor$palletList)));
+				var newStage = A4($author$project$Stage$put, x, y, maybeObj, model.stage);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -6232,7 +6179,6 @@ var $elm$core$List$singleton = function (value) {
 	return _List_fromArray(
 		[value]);
 };
-var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $author$project$StageEditor$StageClicked = F2(
 	function (a, b) {
 		return {$: 'StageClicked', a: a, b: b};
@@ -6408,7 +6354,7 @@ var $author$project$Object$touchArea = F3(
 				]),
 			_List_Nil);
 	});
-var $author$project$StageEditor$touchArea = F2(
+var $author$project$StageEditor$stageTouchArea = F2(
 	function (w, h) {
 		return A2(
 			$elm$svg$Svg$g,
@@ -6429,6 +6375,7 @@ var $author$project$StageEditor$touchArea = F2(
 				},
 				A2($elm$core$List$range, 0, w - 1)));
 	});
+var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $elm$svg$Svg$Attributes$class = _VirtualDom_attribute('class');
 var $author$project$Object$fadeOut = function (content) {
 	return A2(
@@ -7070,7 +7017,7 @@ var $author$project$StageEditor$editableStageView = function (stage) {
 						_List_fromArray(
 							[
 								$author$project$Stage$view(stage),
-								A2($author$project$StageEditor$touchArea, 12, 10)
+								A2($author$project$StageEditor$stageTouchArea, 12, 10)
 							]))))));
 };
 var $elm$html$Html$Attributes$stringProperty = F2(
@@ -7086,17 +7033,21 @@ var $elm$html$Html$Attributes$href = function (url) {
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
-var $author$project$StageEditor$PalletChanged = function (a) {
-	return {$: 'PalletChanged', a: a};
-};
-var $author$project$StageEditor$cursor = function (i) {
+var $author$project$StageEditor$PalletClicked = F2(
+	function (a, b) {
+		return {$: 'PalletClicked', a: a, b: b};
+	});
+var $author$project$StageEditor$cursor = function (_v0) {
+	var x = _v0.a;
+	var y = _v0.b;
 	return A2(
 		$elm$svg$Svg$rect,
 		_List_fromArray(
 			[
 				$elm$svg$Svg$Attributes$x(
-				$elm$core$String$fromInt($author$project$Object$chipSize * i)),
-				$elm$svg$Svg$Attributes$y('0'),
+				$elm$core$String$fromInt($author$project$Object$chipSize * x)),
+				$elm$svg$Svg$Attributes$y(
+				$elm$core$String$fromInt($author$project$Object$chipSize * y)),
 				$elm$svg$Svg$Attributes$width(
 				$elm$core$String$fromInt($author$project$Object$chipSize)),
 				$elm$svg$Svg$Attributes$height(
@@ -7106,40 +7057,56 @@ var $author$project$StageEditor$cursor = function (i) {
 			]),
 		_List_Nil);
 };
+var $author$project$StageEditor$prepend = F2(
+	function (maybe, list) {
+		if (maybe.$ === 'Nothing') {
+			return list;
+		} else {
+			var a = maybe.a;
+			return A2($elm$core$List$cons, a, list);
+		}
+	});
 var $author$project$StageEditor$palletView = function (index) {
 	return A2(
 		$elm$svg$Svg$svg,
 		_List_Nil,
-		A2(
-			$elm$core$List$indexedMap,
-			F2(
-				function (i, o) {
-					var svgList = _Utils_eq(i, index) ? _List_fromArray(
-						[
-							$author$project$StageEditor$cursor(i)
-						]) : _List_Nil;
-					var svgList_ = A2(
-						$elm$core$List$cons,
-						A3(
-							$author$project$Object$touchArea,
-							i,
-							0,
-							$author$project$StageEditor$PalletChanged(i)),
-						svgList);
-					var svgList__ = function () {
-						if (o.$ === 'Just') {
-							var obj = o.a;
-							return A2(
-								$elm$core$List$cons,
-								A3($author$project$Object$toSvg, i, 0, obj),
-								svgList_);
-						} else {
-							return svgList_;
-						}
-					}();
-					return A2($elm$svg$Svg$g, _List_Nil, svgList__);
-				}),
-			$elm$core$Array$toList($author$project$StageEditor$palletList)));
+		$elm$core$List$concat(
+			A2(
+				$elm$core$List$indexedMap,
+				F2(
+					function (y, ls) {
+						return A2(
+							$elm$core$List$indexedMap,
+							F2(
+								function (x, o) {
+									var maybeObj = A2(
+										$elm$core$Maybe$map,
+										A2($author$project$Object$toSvg, x, y),
+										o);
+									var maybeCursor = _Utils_eq(
+										_Utils_Tuple2(x, y),
+										index) ? $elm$core$Maybe$Just(
+										$author$project$StageEditor$cursor(index)) : $elm$core$Maybe$Nothing;
+									var justTouchArea = $elm$core$Maybe$Just(
+										A3(
+											$author$project$Object$touchArea,
+											x,
+											y,
+											A2($author$project$StageEditor$PalletClicked, x, y)));
+									return A2(
+										$elm$svg$Svg$g,
+										_List_Nil,
+										A2(
+											$author$project$StageEditor$prepend,
+											maybeObj,
+											A2(
+												$author$project$StageEditor$prepend,
+												justTouchArea,
+												A2($author$project$StageEditor$prepend, maybeCursor, _List_Nil))));
+								}),
+							ls);
+					}),
+				$author$project$StageEditor$palletList)));
 };
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
