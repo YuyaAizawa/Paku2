@@ -1,19 +1,20 @@
 module Object exposing
   ( Object(..)
   , ContactReaction(..)
+  , reaction
+  , isFerromagnet
   , chipSize
   , toSvg
-  , touchArea
-  , reaction
-  , fadeOut
+  , toChar
+  , fromChar
   )
 
 import Direction exposing (Direction(..))
 
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-import Svg.Events exposing (onMouseDown)
-import Html.Events.Extra.Touch exposing (onStart)
+
+
 
 type Object
  = Paku
@@ -40,13 +41,58 @@ type Object
       * wait : Int = 移動までの待ち時間
    -}
    Pusher Direction Int
+ | Magnet Direction
 
+
+
+-- PROPERTIES --
 
 type ContactReaction
  = Takable
  | Movable
  | Fixed
  | Aggressive
+
+reaction : Object -> ContactReaction
+reaction obj =
+  case obj of
+    Paku               -> Fixed
+    Wall               -> Fixed
+    Gem _ _            -> Takable
+    Block              -> Movable
+    Kiki _             -> Movable
+    ClockwiseBlock     -> Movable
+    AntiClockwiseBlock -> Movable
+    CrackedBlock       -> Takable
+    Spinner _          -> Aggressive
+    Pusher _ _         -> Movable
+    Magnet _           -> Movable
+
+isFerromagnet : Direction -> Object -> Bool
+isFerromagnet magDir obj =
+  case obj of
+    Block              -> True
+    Kiki _             -> True
+    ClockwiseBlock     -> True
+    AntiClockwiseBlock -> True
+    Spinner _          -> True
+    Pusher _ _         -> True
+    Magnet d           ->
+      case ( magDir, d ) of
+        ( Up   , Left  ) -> True
+        ( Up   , Right ) -> True
+        ( Down , Left  ) -> True
+        ( Down , Right ) -> True
+        ( Left , Up    ) -> True
+        ( Left , Down  ) -> True
+        ( Right, Up    ) -> True
+        ( Right, Down  ) -> True
+        _ -> False
+    _ -> False
+
+
+
+-- VIEW --
 
 chipSize = 16
 
@@ -57,34 +103,6 @@ toSvg chipOffsetX chipOffsetY obj =
     |> List.map (translate (toFloat (chipOffsetX * chipSize)) (toFloat (chipOffsetY * chipSize)))
     |> List.map figureToSvg
     |> Svg.g []
-
-touchArea : Int -> Int -> msg -> Svg msg
-touchArea chipOffsetX chipOffsetY msg =
-  rect
-    [ x <| String.fromInt <| (chipOffsetX*chipSize)
-    , y <| String.fromInt <| (chipOffsetY*chipSize)
-    , width <| String.fromInt <| chipSize
-    , height <| String.fromInt <| chipSize
-    , stroke "none"
-    , fill "#00000010"
-    , onMouseDown (msg)
-    , onStart (\_ -> msg)
-    ][]
-
-reaction : Object -> ContactReaction
-reaction obj =
-  case obj of
-    Paku -> Fixed
-    Wall -> Fixed
-    Gem _ _ -> Takable
-    Block -> Movable
-    Kiki _ -> Movable
-    ClockwiseBlock -> Movable
-    AntiClockwiseBlock -> Movable
-    CrackedBlock -> Takable
-    Spinner _ -> Aggressive
-    Pusher _ _ -> Movable
-
 
 tofigureList : Object -> List Figure
 tofigureList obj =
@@ -97,32 +115,22 @@ tofigureList obj =
       , Rectangle 4.0 4.0 8.0 8.0 white none
       ]
 
-    Gem Up _ ->
+    Gem d _ ->
+      directional d
       [ Polygon [(0.0, 8.0), (8.0, 8.0), (8.0, 0.0)] none lightBlue
       , Polygon [(8.0, 0.0), (8.0, 8.0), (16.0, 8.0)] none darkBlue
       , Polygon [(16.0, 8.0), (8.0, 8.0), (8.0, 16.0)] none blue
       , Polygon [(8.0, 16.0), (8.0, 8.0), (0.0, 8.0)] none darkBlue
       ]
-    Gem Down _ ->
-      Gem Up 0 |> tofigureList |> List.map (rotate 180)
-    Gem Left _->
-      Gem Up 0 |> tofigureList |> List.map (rotate 270)
-    Gem Right _->
-      Gem Up 0 |> tofigureList |> List.map (rotate 90)
 
     Block ->
       [ Rectangle 1.0 1.0 14.0 14.0 black yellow ]
 
-    Kiki Up ->
+    Kiki d ->
+      directional d
       [ Rectangle 1.0 1.0 14.0 14.0 black yellow
       , Polyline [(8.0, 13.0), (8.0, 3.0), (3.0, 8.0), (13.0, 8.0), (8.0, 3.0)] red
       ]
-    Kiki Down ->
-      Kiki Up |> tofigureList |> List.map (rotate 180)
-    Kiki Left ->
-      Kiki Up |> tofigureList |> List.map (rotate 270)
-    Kiki Right ->
-      Kiki Up |> tofigureList |> List.map (rotate 90)
 
     ClockwiseBlock ->
       [ Rectangle 1.0 1.0 14.0 14.0 black yellow
@@ -146,19 +154,82 @@ tofigureList obj =
       ]
         |> List.map (rotate (toFloat i * 30.0))
 
-    Pusher Up _ ->
+    Pusher d _ ->
+      directional d
       [ Rectangle 2.0 7.0 12.0 6.0 red yellow
       , Polygon [(8.0, 2.0), (14.0, 7.0), (2.0, 7.0)] none red
       , Rectangle 6.0 7.0 4.0 6.0 none red
       ]
-    Pusher Down _ ->
-      Pusher Up 0 |> tofigureList |> List.map (rotate 180)
-    Pusher Left _ ->
-      Pusher Up 0 |> tofigureList |> List.map (rotate 270)
-    Pusher Right _ ->
-      Pusher Up 0 |> tofigureList |> List.map (rotate 90)
+
+    Magnet d ->
+      directional d
+      [ Polygon [(0, 3), (1, 1), (15, 1), (16, 3), (15, 5), (1, 5)] black red
+      , Rectangle 4 5 8 6 black yellow
+      , Polygon [(0, 13), (1, 11), (15, 11), (16, 13), (15, 15), (1, 15)] black red
+      ]
+
+directional d figList =
+  case d of
+    Up    -> figList
+    Down  -> figList |> List.map (rotate 180)
+    Left  -> figList |> List.map (rotate 270)
+    Right -> figList |> List.map (rotate 90)
 
 
+
+-- SERIALIZE --
+
+toChar : Maybe Object -> Char
+toChar obj =
+  case obj of
+    Just Paku               -> '@'
+    Just Wall               -> 'W'
+    Just (Gem _ _)          -> 'G'
+    Just Block              -> 'B'
+    Just (Kiki Up)          -> '8'
+    Just (Kiki Down)        -> '2'
+    Just (Kiki Left)        -> '4'
+    Just (Kiki Right)       -> '6'
+    Just ClockwiseBlock     -> ','
+    Just AntiClockwiseBlock -> ';'
+    Just CrackedBlock       -> 'C'
+    Just (Spinner _)        -> '+'
+    Just (Pusher Up _)      -> '^'
+    Just (Pusher Down _)    -> 'v'
+    Just (Pusher Left _)    -> '<'
+    Just (Pusher Right _)   -> '>'
+    Just (Magnet Up)        -> '|'
+    Just (Magnet Down)      -> '|'
+    Just (Magnet Left)      -> '-'
+    Just (Magnet Right)     -> '-'
+    Nothing                 -> ' '
+
+fromChar : Char -> Maybe Object
+fromChar c =
+  case c of
+    '@' -> Just Paku
+    'W' -> Just Wall
+    'G' -> Just (Gem Up 0)
+    'B' -> Just Block
+    '8' -> Just (Kiki Up)
+    '2' -> Just (Kiki Down)
+    '4' -> Just (Kiki Left)
+    '6' -> Just (Kiki Right)
+    ',' -> Just ClockwiseBlock
+    ';' -> Just AntiClockwiseBlock
+    'C' -> Just CrackedBlock
+    '+' -> Just (Spinner 0)
+    '^' -> Just (Pusher Up 0)
+    'v' -> Just (Pusher Down 0)
+    '<' -> Just (Pusher Left 0)
+    '>' -> Just (Pusher Right 0)
+    '|' -> Just (Magnet Up)
+    '-' -> Just (Magnet Left)
+    _ -> Nothing
+
+
+
+-- FIGURES --
 
 type Figure
   = Rectangle Float Float Float Float Color Color
@@ -290,12 +361,6 @@ rotatePoint deg (x_, y_) =
     ( (x_ - halfChip) * cos_ - (y_ - halfChip) * sin_ + halfChip
     , (x_ - halfChip) * sin_ + (y_ - halfChip) * cos_ + halfChip
     )
-
-fadeOut : Svg msg -> Svg msg
-fadeOut content =
-  Svg.g
-    [ class "fade-out" ]
-    [ content ]
 
 type alias Color = String
 

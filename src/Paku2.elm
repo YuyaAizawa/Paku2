@@ -36,7 +36,6 @@ main =
 type alias Model =
   { stage : Stage
   , inputState : InputState
-  , frame : Int
   , stageSrc : String
   , stageEncoded : String
   }
@@ -55,7 +54,6 @@ init flags = ( initModel flags, encodeUri flags.stage )
 initModel flags =
   { stage = Stage.fromString flags.stage
   , inputState = WaitForPlayerInput
-  , frame = 0
   , stageSrc = flags.stage
   , stageEncoded = ""
     --"WWWWWWWWWW\n"++
@@ -88,18 +86,16 @@ update msg model =
         ( model, Cmd.none )
 
       Tick ->
-        if Stage.state model.stage /= Playing
-        then
+        if Stage.state model.stage /= Playing then
           ( model, Cmd.none )
         else
           ( model, requestEnemyTurn model.stage )
 
       Key direction ->
-        if Stage.state model.stage /= Playing
-        then
+        if Stage.state model.stage /= Playing then
           ( model, Cmd.none )
-        else if model.inputState == WaitForEnemyTurn
-        then forceTick model direction
+        else if model.inputState == WaitForEnemyTurn then
+          forceTick model direction
         else
           let
             nextStage = Stage.move direction model.stage
@@ -107,9 +103,10 @@ update msg model =
               { model
               | stage = nextStage
               , inputState =
-                if Stage.state model.stage == Miss
-                then WaitForAnimation
-                else WaitForEnemyTurn
+                if Stage.state model.stage == Miss then
+                  WaitForAnimation
+                else
+                  WaitForEnemyTurn
               }
           in
             ( newModel, Cmd.none )
@@ -118,10 +115,10 @@ update msg model =
         ( { model
           | stage = stage
           , inputState =
-              if Stage.state stage == Miss
-              then WaitForAnimation
-              else WaitForPlayerInput
-          , frame = model.frame + 1
+              if Stage.state stage == Miss then
+                WaitForAnimation
+              else
+                WaitForPlayerInput
           }
         , Cmd.none
         )
@@ -159,41 +156,43 @@ forceTick model direction =
     ]
   )
 
+
+
 -- VIEW --
 
 view : Model -> Html Msg
 view model =
   let
     top =
-      if model.inputState == WaitForAnimation
-      then
+      if model.inputState == WaitForAnimation then
         [ Stage.view model.stage
         , buttons
         ]
-      else case model.stage |> Stage.state of
-        Playing ->
-          [ Stage.view model.stage
-          , buttons
-          ]
-        Cleared ->
-          [ Html.p[][text "くりあ～"]
-          , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
-          ]
-        Miss ->
-          [ Html.p[][text "ミス"]
-          , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
-          ]
+      else
+        case model.stage |> Stage.state of
+          Playing ->
+            [ Stage.view model.stage
+            , buttons
+            ]
+          Cleared ->
+            [ Html.p[][text "くりあ～"]
+            , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
+            ]
+          Miss ->
+            [ Html.p[][text "ミス"]
+            , Html.input[Attr.type_ "button", onClick LoadStage, Attr.value "リセット"][]
+            ]
   in
-  List.concat
-    [ top
-    , [ Html.p[]
-        [ Html.a
-          [ Attr.href ("editor.html?stage="++model.stageEncoded) ]
-          [ Html.text "edit" ]
+    List.concat
+      [ top
+      , [ Html.p[]
+          [ Html.a
+            [ Attr.href ("editor.html?stage="++model.stageEncoded) ]
+            [ Html.text "edit" ]
+          ]
         ]
       ]
-    ]
-    |> Html.div []
+      |> Html.div []
 
 buttons =
   Svg.svg []

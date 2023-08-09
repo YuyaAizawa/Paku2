@@ -17,15 +17,17 @@ import Dict exposing (Dict)
 import Random exposing (Seed)
 import Html exposing (Html)
 import Svg exposing (svg)
-import Svg.Attributes exposing (viewBox)
+import Svg.Attributes exposing (class, viewBox)
 
 
 
 type alias Stage =
-  { map : Dict Coord Object
+  { map : Map
   , size : Coord
   , miss : Bool
   }
+
+type alias Map = Dict Coord Object
 
 type alias Coord = ( Int, Int )
 
@@ -166,138 +168,271 @@ move direction stage =
       , miss = miss
       }
 
-towards direction (x, y) =
+towards direction ( x, y ) =
   case direction of
-        Up ->    (x    , y - 1)
-        Down ->  (x    , y + 1)
-        Left ->  (x - 1, y    )
-        Right -> (x + 1, y    )
+    Up ->    ( x    , y - 1 )
+    Down ->  ( x    , y + 1 )
+    Left ->  ( x - 1, y     )
+    Right -> ( x + 1, y     )
 
 enemyTurn : Stage -> Random.Generator Stage
 enemyTurn stage =
   let
+    map =
+      stage.map
+
+    bounded =
+      map
+        |> Dict.toList
+        |> List.foldl (accBounded map) []
+
+    ( map_, bounded_, _ ) =
+      map
+        |> Dict.toList
+        |> List.foldl magnetsStep ( map, bounded, [] )
+
+    ( map__, interfered ) =
+      map_
+        |> Dict.toList
+        |> List.foldl pushersStep ( map_, bounded_ )
+
     acc ( pos, obj ) prev =
       prev
-        |> Random.andThen (\stage_ -> step pos obj stage_)
+        |> Random.andThen (\stage_ -> miscsStep pos obj stage_ interfered)
 
     init =
-      Random.constant stage
+      Random.constant { stage | map = map__ }
   in
     stage.map
       |> Dict.toList
       |> List.foldl acc init
 
-
-step : Coord -> Object -> Stage -> Random.Generator Stage
-step pos obj stage =
+accBounded : Map -> ( Coord, Object ) -> List Coord -> List Coord
+accBounded map ( pos, obj ) bounded =
   case obj of
-    Kiki direction ->
-      let
-        map =
-          case stage.map |> Dict.get (pos |> towards direction) of
-            Nothing ->
-              stage.map |> Dict.remove pos |> Dict.insert (pos |> towards direction) obj
-            Just ClockwiseBlock ->
-              stage.map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
-            Just AntiClockwiseBlock ->
-              stage.map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
-            _ -> stage.map
-      in
-        { stage | map = map } |> Random.constant
+    Magnet d ->
+      bounded
+        |> tryBound pos d map
+        |> tryBound pos (d |> Direction.mirror) map
 
-    Gem frame 0 ->
-      gemGenerator
-        |> Random.map (\( nextFrame, nextRemaining ) ->
+    _ ->
+      bounded
+
+tryBound pos d map bounded =
+  case map |> Dict.get (pos |> towards d) of
+    Just o ->
+      if o |> Object.isFerromagnet d then
+        pos :: bounded
+      else
+        bounded
+
+    Nothing ->
+      bounded
+
+magnetsStep : ( Coord, Object ) -> ( Map, List Coord, List Coord ) -> ( Map, List Coord, List Coord )
+magnetsStep ( pos, obj ) prev =
+  let
+    ( _, _, canceled ) = prev
+  in
+    if canceled |> List.member pos then
+      prev
+    else
+      case obj of
+        Magnet d ->
+          prev
+            |> tryPull pos d
+            |> tryPull pos (d |> Direction.mirror)
+        _ -> prev
+
+tryPull pos d ( map, bounded, canceled ) =
+  let
+    front = pos |> towards d
+
+    back = pos |> towards d |> towards d
+
+    backObj = map |> Dict.get back
+
+    spaceInFront =
+      map
+        |> Dict.get front
+        |> (==) Nothing
+
+    ferromagneticInBack =
+      backObj
+        |> Maybe.map (Object.isFerromagnet d)
+        |> Maybe.withDefault False
+
+    notBounded =
+      (bounded |> List.member back) || (canceled |> List.member back)
+  in
+    if spaceInFront && ferromagneticInBack && notBounded then
+      let
+        map_ =
+          map
+            |> Dict.remove back
+            |> Dict.update front (\_ -> backObj)
+
+        bounded_ =
+          front :: bounded
+
+        canceled_ =
+          back :: canceled
+      in
+        ( map_, bounded_, canceled_ )
+    else
+      ( map, bounded, canceled )
+
+pushersStep : ( Coord, Object ) -> ( Map, List Coord ) -> ( Map, List Coord )
+pushersStep ( pos, obj ) prev =
+  let
+    ( map, interfered ) = prev
+  in
+    if interfered |> List.member pos then
+      prev
+    else
+      case obj of
+        Pusher d 0 ->
+          let
+            p1 = towards d pos
+            p2 = towards d p1
+            o1 = Dict.get p1 map
+            entryType =
+              o1
+                |> Maybe.map
+                  ( \o -> case Object.reaction o of
+                    Movable ->
+                      if (map |> Dict.member p2) || (interfered |> List.member p1) then
+                        CannotEntry
+                      else
+                        case o of
+                          Pusher _ _ -> CannotEntry
+                          _          -> PushEntry o
+                    Fixed -> CannotEntry
+                    _ -> CannotEntry
+                  )
+                |> Maybe.withDefault JustEntry
+          in
+            case entryType of
+              JustEntry ->
+                let
+                  map_ =
+                    map
+                      |> Dict.remove pos
+                      |> Dict.insert p1 (Pusher d pusherWait)
+                in
+                  ( map_, interfered )
+              PushEntry o ->
+                let
+                  map_ =
+                    map
+                      |> Dict.remove p1
+                      |> Dict.insert p2 o
+                      |> Dict.insert pos (Pusher (d |> Direction.mirror) pusherWait)
+                in
+                  ( map_, p2 :: interfered )
+              CannotEntry ->
+                let
+                  map_ =
+                    map
+                      |> Dict.insert pos (Pusher (d |> Direction.mirror) pusherWait)
+                in
+                  ( map_, interfered )
+              _ -> prev
+
+        Pusher d n ->
+          let
+            nextPusher =
+              if interfered |> List.member pos then
+                Pusher d pusherWait
+              else
+                Pusher d (n-1)
+
+            map_ =
+              map
+                |> Dict.insert pos nextPusher
+          in
+            ( map_, interfered )
+
+        _ -> prev
+
+
+miscsStep : Coord -> Object -> Stage -> List Coord -> Random.Generator Stage
+miscsStep pos obj stage interfered =
+  let
+    bounded =
+      interfered |> List.member pos
+  in
+    case obj of
+      Kiki direction ->
+        if bounded then
+          stage |> Random.constant
+        else
           let
             map =
-              stage.map
-                |> Dict.insert pos ( Gem nextFrame nextRemaining )
+              case stage.map |> Dict.get (pos |> towards direction) of
+                Nothing ->
+                  stage.map |> Dict.remove pos |> Dict.insert (pos |> towards direction) obj
+                Just ClockwiseBlock ->
+                  stage.map |> Dict.insert pos (Kiki (Direction.rotateClockwise direction))
+                Just AntiClockwiseBlock ->
+                  stage.map |> Dict.insert pos (Kiki (Direction.rotateAntiClockwise direction))
+                _ -> stage.map
           in
-            { stage | map = map }
-        )
+            { stage | map = map } |> Random.constant
 
-    Gem frame remaining ->
-      let
-        map =
-          stage.map
-            |> Dict.insert pos (Gem frame (remaining - 1))
-      in
-        { stage | map = map } |> Random.constant
-
-    Spinner i ->
-      let
-        nextFrame =
-          case i of
-            2 -> 0
-            n -> n + 1
-        nextSpinner = Spinner nextFrame
-      in
-        spinnerAi pos (pakuPos stage)
-          |> Random.map (\direction ->
+      Gem frame 0 ->
+        gemGenerator
+          |> Random.map (\( nextFrame, nextRemaining ) ->
             let
-              nextPos =
-                direction
-                  |> Maybe.map (\d -> pos |> towards d)
-                  |> Maybe.withDefault pos
-              removedMap = stage.map |> Dict.remove pos
-              ( nextMap, nextDamaged ) =
-                case removedMap |> Dict.get nextPos of
-                  Nothing -> (removedMap |> Dict.insert nextPos nextSpinner, False)
-                  Just Paku -> (removedMap |> Dict.insert pos nextSpinner, True)
-                  _ -> (removedMap |> Dict.insert pos nextSpinner, False)
+              map =
+                stage.map
+                  |> Dict.insert pos ( Gem nextFrame nextRemaining )
             in
-              { stage
-              | map = nextMap
-              , miss = stage.miss || nextDamaged
-              }
+              { stage | map = map }
           )
 
-    Pusher d 0 ->
-      let
-        pusherWait = 6
-        p1 = towards d pos
-        p2 = towards d p1
-        o1 = Dict.get p1 stage.map
-        entryType =
-          o1
-            |> Maybe.map
-              ( \o -> case Object.reaction o of
-                Movable ->
-                  if stage.map |> Dict.member p2
-                  then CannotEntry
-                  else PushEntry o
-                Fixed -> CannotEntry
-                _ -> CannotEntry
-              )
-            |> Maybe.withDefault JustEntry
+      Gem frame remaining ->
+        let
+          map =
+            stage.map
+              |> Dict.insert pos (Gem frame (remaining - 1))
+        in
+          { stage | map = map } |> Random.constant
 
-        map =
-          case entryType of
-            JustEntry ->
-              stage.map
-                |> Dict.remove pos
-                |> Dict.insert p1 (Pusher d pusherWait)
-            PushEntry o ->
-              stage.map
-                |> Dict.remove pos
-                |> Dict.insert p2 o
-                |> Dict.insert p1 (Pusher (d |> Direction.mirror) pusherWait)
-            CannotEntry ->
-              stage.map
-                |> Dict.insert pos (Pusher (d |> Direction.mirror) pusherWait)
-            _ -> stage.map
-      in
-        { stage | map = map } |> Random.constant
+      Spinner i ->
+        let
+          nextFrame =
+            case i of
+              2 -> 0
+              n -> n + 1
+          nextSpinner = Spinner nextFrame
+        in
+          spinnerAi pos (pakuPos stage)
+            |> Random.map (\direction ->
+              let
+                nextPos =
+                  if bounded then
+                    pos
+                  else
+                    direction
+                      |> Maybe.map (\d -> pos |> towards d)
+                      |> Maybe.withDefault pos
 
-    Pusher d n ->
-      let
-        map =
-          stage.map
-            |> Dict.insert pos (Pusher d (n-1))
-      in
-        { stage | map = map } |> Random.constant
+                removedMap =
+                  stage.map |> Dict.remove pos
 
-    _ -> stage |> Random.constant
+                ( nextMap, nextDamaged ) =
+                  case removedMap |> Dict.get nextPos of
+                    Nothing -> (removedMap |> Dict.insert nextPos nextSpinner, False)
+                    Just Paku -> (removedMap |> Dict.insert pos nextSpinner, True)
+                    _ -> (removedMap |> Dict.insert pos nextSpinner, False)
+              in
+                { stage
+                | map = nextMap
+                , miss = stage.miss || nextDamaged
+                }
+            )
+      _ -> stage |> Random.constant
 
 pakuPos : Stage -> Coord
 pakuPos stage =
@@ -307,6 +442,8 @@ pakuPos stage =
     |> List.head
     |> Maybe.map Tuple.first
     |> Maybe.withDefault ( -1, -1 )
+
+pusherWait = 6
 
 gemGenerator : Random.Generator (Direction, Int)
 gemGenerator =
@@ -371,9 +508,14 @@ view stage =
       |> Dict.toList
       |> List.map (\((x, y), obj) ->
         if obj == Paku && stage.miss
-        then obj |> Object.toSvg x y |> Object.fadeOut
+        then obj |> Object.toSvg x y |> fadeOut
         else obj |> Object.toSvg x y)
     )
+
+fadeOut content =
+  Svg.g
+    [ class "fade-out" ]
+    [ content ]
 
 
 
@@ -391,7 +533,7 @@ toString stage =
       else
         stage.map
           |> Dict.get (x, y)
-          |> objToChar)
+          |> Object.toChar)
     |> String.fromList
 
 
@@ -405,51 +547,19 @@ fromString src =
           l |> String.toList
             |> List.indexedMap (\x c -> ((x, y), c))
             |> List.filterMap (\(coord, char) ->
-              objFromChar char
+              Object.fromChar char
                 |> Maybe.map(\o -> (coord, o))))
         |> List.concat
         |> Dict.fromList
   in
   fromDict map
 
-objToChar : Maybe Object -> Char
-objToChar obj =
-  case obj of
-    Just Paku               -> '@'
-    Just Wall               -> 'W'
-    Just (Gem _ _)          -> 'G'
-    Just Block              -> 'B'
-    Just (Kiki Up)          -> '8'
-    Just (Kiki Down)        -> '2'
-    Just (Kiki Left)        -> '4'
-    Just (Kiki Right)       -> '6'
-    Just ClockwiseBlock     -> ','
-    Just AntiClockwiseBlock -> ';'
-    Just CrackedBlock       -> 'C'
-    Just (Spinner _)        -> '+'
-    Just (Pusher Up _)      -> '^'
-    Just (Pusher Down _)    -> 'v'
-    Just (Pusher Left _)    -> '<'
-    Just (Pusher Right _)   -> '>'
-    Nothing                 -> ' '
 
-objFromChar : Char -> Maybe Object
-objFromChar c =
-  case c of
-    '@' -> Just Paku
-    'W' -> Just Wall
-    'G' -> Just (Gem Up 0)
-    'B' -> Just Block
-    '8' -> Just (Kiki Up)
-    '2' -> Just (Kiki Down)
-    '4' -> Just (Kiki Left)
-    '6' -> Just (Kiki Right)
-    ',' -> Just ClockwiseBlock
-    ';' -> Just AntiClockwiseBlock
-    'C' -> Just CrackedBlock
-    '+' -> Just (Spinner 0)
-    '^' -> Just (Pusher Up 0)
-    'v' -> Just (Pusher Down 0)
-    '<' -> Just (Pusher Left 0)
-    '>' -> Just (Pusher Right 0)
-    _ -> Nothing
+
+-- UTILITIES --
+
+prepend : Maybe a -> List a -> List a
+prepend maybe list =
+  case maybe of
+    Nothing -> list
+    Just a  -> a :: list

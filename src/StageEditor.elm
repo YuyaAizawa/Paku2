@@ -2,15 +2,18 @@ module StageEditor exposing (init)
 
 import Direction exposing (Direction(..))
 import Stage exposing (Stage)
-import Object exposing (Object(..))
+import Object exposing (Object(..), chipSize)
 import Ports exposing (encodeUri, onUriEncoded)
 
 import Array exposing (Array)
 import Browser
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Html.Events.Extra.Touch exposing (onStart)
 import Svg exposing (Svg)
 import Svg.Attributes
+import Svg.Events exposing (onMouseDown)
+
 
 
 main =
@@ -96,7 +99,7 @@ stageTouchArea w h =
   List.range 0 (w-1)
     |> List.concatMap (\x -> List.range 0 (h-1)
       |> List.map (\y ->
-        Object.touchArea x y (StageClicked x y)))
+        touchArea x y (StageClicked x y)))
     |> Svg.g []
 
 editableStageView stage =
@@ -129,7 +132,7 @@ palletList =
     ]
   , [ Nothing
     , Nothing
-    , Nothing
+    , Just (Magnet Up)
     , Nothing
     , Just (Kiki Down)
     , Nothing
@@ -138,7 +141,7 @@ palletList =
     ]
   , [ Nothing
     , Nothing
-    , Nothing
+    , Just (Magnet Left)
     , Nothing
     , Just (Kiki Left)
     , Nothing
@@ -159,7 +162,7 @@ palletView index =
             else Nothing
 
           justTouchArea =
-            Just (Object.touchArea x y (PalletClicked x y))
+            Just (touchArea x y (PalletClicked x y))
 
           maybeObj =
             o |> Maybe.map (Object.toSvg x y)
@@ -182,6 +185,19 @@ cursor (x, y) =
     , Svg.Attributes.height <| String.fromInt <| Object.chipSize
     , Svg.Attributes.stroke "#FF0000"
     , Svg.Attributes.fill "none"
+    ][]
+
+touchArea : Int -> Int -> msg -> Svg msg
+touchArea chipOffsetX chipOffsetY msg =
+  Svg.rect
+    [ Svg.Attributes.x <| String.fromInt <| (chipOffsetX*chipSize)
+    , Svg.Attributes.y <| String.fromInt <| (chipOffsetY*chipSize)
+    , Svg.Attributes.width <| String.fromInt <| chipSize
+    , Svg.Attributes.height <| String.fromInt <| chipSize
+    , Svg.Attributes.stroke "none"
+    , Svg.Attributes.fill "#00000010"
+    , onMouseDown (msg)
+    , onStart (\_ -> msg)
     ][]
 
 
