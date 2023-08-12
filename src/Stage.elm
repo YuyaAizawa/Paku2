@@ -10,6 +10,7 @@ module Stage exposing
   , fromString
   )
 
+import Axis
 import Direction exposing (Direction(..))
 import Object exposing (Object(..), ContactReaction(..))
 
@@ -143,17 +144,20 @@ move direction stage =
             stage.map
               |> Dict.remove p0
               |> Dict.insert p1 Paku
+              |> pullMagnets p1
 
           TakeEntry _ ->
             stage.map
               |> Dict.remove p0
               |> Dict.insert p1 Paku
+              |> pullMagnets p1
 
           PushEntry obj ->
             stage.map
               |> Dict.remove p0
               |> Dict.insert p1 Paku
               |> Dict.insert p2 obj
+              |> pullMagnets p1
 
           _ ->
             stage.map
@@ -168,6 +172,41 @@ move direction stage =
       , miss = miss
       }
 
+pullMagnets : Coord -> Map -> Map
+pullMagnets paku map =
+  Direction.values
+    |> List.foldl (pullMagnet paku) map
+
+pullMagnet : Coord -> Direction -> Map -> Map
+pullMagnet paku dir map =
+  let
+    front = paku |> towards dir
+
+    back = paku |> towards dir |> towards dir
+
+    backObj = map |> Dict.get back
+
+    spaceInFront =
+      map
+        |> Dict.get front
+        |> (==) Nothing
+
+    rightAxisMagnet =
+      case backObj of
+        Just (Magnet axis) ->
+          axis
+            |> Axis.toDirections
+            |> List.member dir
+        _ -> False
+  in
+    if spaceInFront && rightAxisMagnet then
+      map
+        |> Dict.remove back
+        |> Dict.update front (\_ -> backObj)
+    else
+      map
+
+
 towards direction ( x, y ) =
   case direction of
     Up ->    ( x    , y - 1 )
@@ -177,56 +216,68 @@ towards direction ( x, y ) =
 
 enemyTurn : Stage -> Random.Generator Stage
 enemyTurn stage =
+  stage
+    |> magnetsTurn
+    |> pushersTurn
+    |> miscsTurn
+
+magnetsTurn : Stage -> ( Stage, List Coord )
+magnetsTurn stage =
   let
-    map =
-      stage.map
-
     bounded =
-      map
+      stage.map
         |> Dict.toList
-        |> List.foldl (accBounded map) []
+        |> List.foldl (accBounded stage.map) []
 
-    ( map_, bounded_, _ ) =
-      map
+    ( map, bounded_, _ ) =
+      stage.map
         |> Dict.toList
-        |> List.foldl magnetsStep ( map, bounded, [] )
+        |> List.foldl magnetsStep ( stage.map, bounded, [] )
+  in
+    ( { stage | map = map }, bounded_ )
 
-    ( map__, interfered ) =
-      map_
+pushersTurn : ( Stage, List Coord ) -> ( Stage, List Coord )
+pushersTurn ( stage, bounded ) =
+  let
+    ( map, interfered ) =
+      stage.map
         |> Dict.toList
-        |> List.foldl pushersStep ( map_, bounded_ )
+        |> List.foldl pushersStep ( stage.map, bounded )
+  in
+    ( { stage | map = map }, interfered )
 
+miscsTurn : ( Stage, List Coord ) -> Random.Generator Stage
+miscsTurn ( stage, interfered ) =
+  let
     acc ( pos, obj ) prev =
       prev
         |> Random.andThen (\stage_ -> miscsStep pos obj stage_ interfered)
-
-    init =
-      Random.constant { stage | map = map__ }
   in
     stage.map
       |> Dict.toList
-      |> List.foldl acc init
+      |> List.foldl acc (Random.constant stage)
 
 accBounded : Map -> ( Coord, Object ) -> List Coord -> List Coord
 accBounded map ( pos, obj ) bounded =
   case obj of
-    Magnet d ->
-      bounded
-        |> tryBound pos d map
-        |> tryBound pos (d |> Direction.mirror) map
+    Magnet axis ->
+      let
+        targets =
+          axis
+            |> Axis.toDirections
+            |> List.filterMap (\d ->
+              let
+                p = pos |> towards d
+              in
+                map
+                  |> Dict.get p
+                  |> Maybe.map (\o -> ( p, o )))
+            |> List.filter (\( _, o ) -> Object.isFerromagnet axis o)
+            |> List.map Tuple.first
+      in
+        targets ++ bounded
 
     _ ->
-      bounded
-
-tryBound pos d map bounded =
-  case map |> Dict.get (pos |> towards d) of
-    Just o ->
-      if o |> Object.isFerromagnet d then
-        pos :: bounded
-      else
-        bounded
-
-    Nothing ->
       bounded
 
 magnetsStep : ( Coord, Object ) -> ( Map, List Coord, List Coord ) -> ( Map, List Coord, List Coord )
@@ -238,13 +289,13 @@ magnetsStep ( pos, obj ) prev =
       prev
     else
       case obj of
-        Magnet d ->
-          prev
-            |> tryPull pos d
-            |> tryPull pos (d |> Direction.mirror)
+        Magnet axis ->
+          axis
+            |> Axis.toDirections
+            |> List.foldl (tryPull pos axis) prev
         _ -> prev
 
-tryPull pos d ( map, bounded, canceled ) =
+tryPull pos axis d ( map, bounded, canceled ) =
   let
     front = pos |> towards d
 
@@ -259,11 +310,11 @@ tryPull pos d ( map, bounded, canceled ) =
 
     ferromagneticInBack =
       backObj
-        |> Maybe.map (Object.isFerromagnet d)
+        |> Maybe.map (Object.isFerromagnet axis)
         |> Maybe.withDefault False
 
     notBounded =
-      (bounded |> List.member back) || (canceled |> List.member back)
+      not ((bounded |> List.member back) || (canceled |> List.member back))
   in
     if spaceInFront && ferromagneticInBack && notBounded then
       let
@@ -281,6 +332,7 @@ tryPull pos d ( map, bounded, canceled ) =
         ( map_, bounded_, canceled_ )
     else
       ( map, bounded, canceled )
+
 
 pushersStep : ( Coord, Object ) -> ( Map, List Coord ) -> ( Map, List Coord )
 pushersStep ( pos, obj ) prev =
@@ -354,7 +406,6 @@ pushersStep ( pos, obj ) prev =
             ( map_, interfered )
 
         _ -> prev
-
 
 miscsStep : Coord -> Object -> Stage -> List Coord -> Random.Generator Stage
 miscsStep pos obj stage interfered =

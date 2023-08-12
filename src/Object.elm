@@ -9,6 +9,7 @@ module Object exposing
   , fromChar
   )
 
+import Axis exposing (Axis(..))
 import Direction exposing (Direction(..))
 
 import Svg exposing (..)
@@ -41,7 +42,7 @@ type Object
       * wait : Int = 移動までの待ち時間
    -}
    Pusher Direction Int
- | Magnet Direction
+ | Magnet Axis
 
 
 
@@ -68,8 +69,8 @@ reaction obj =
     Pusher _ _         -> Movable
     Magnet _           -> Movable
 
-isFerromagnet : Direction -> Object -> Bool
-isFerromagnet magDir obj =
+isFerromagnet : Axis -> Object -> Bool
+isFerromagnet magAxis obj =
   case obj of
     Block              -> True
     Kiki _             -> True
@@ -77,18 +78,8 @@ isFerromagnet magDir obj =
     AntiClockwiseBlock -> True
     Spinner _          -> True
     Pusher _ _         -> True
-    Magnet d           ->
-      case ( magDir, d ) of
-        ( Up   , Left  ) -> True
-        ( Up   , Right ) -> True
-        ( Down , Left  ) -> True
-        ( Down , Right ) -> True
-        ( Left , Up    ) -> True
-        ( Left , Down  ) -> True
-        ( Right, Up    ) -> True
-        ( Right, Down  ) -> True
-        _ -> False
-    _ -> False
+    Magnet axis        -> axis /= magAxis
+    _                  -> False
 
 
 
@@ -161,12 +152,17 @@ tofigureList obj =
       , Rectangle 6.0 7.0 4.0 6.0 none red
       ]
 
-    Magnet d ->
-      directional d
-      [ Polygon [(0, 3), (1, 1), (15, 1), (16, 3), (15, 5), (1, 5)] black red
-      , Rectangle 4 5 8 6 black yellow
-      , Polygon [(0, 13), (1, 11), (15, 11), (16, 13), (15, 15), (1, 15)] black red
-      ]
+    Magnet axis ->
+      let
+        verticalFig =
+          [ Polygon [(0, 3), (1, 1), (15, 1), (16, 3), (15, 5), (1, 5)] black red
+          , Rectangle 4 5 8 6 black yellow
+          , Polygon [(0, 13), (1, 11), (15, 11), (16, 13), (15, 15), (1, 15)] black red
+          ]
+      in
+        case axis of
+          Horizontal -> verticalFig |> List.map (rotate 90)
+          Vertical   -> verticalFig
 
 directional d figList =
   case d of
@@ -182,27 +178,25 @@ directional d figList =
 toChar : Maybe Object -> Char
 toChar obj =
   case obj of
-    Just Paku               -> '@'
-    Just Wall               -> 'W'
-    Just (Gem _ _)          -> 'G'
-    Just Block              -> 'B'
-    Just (Kiki Up)          -> '8'
-    Just (Kiki Down)        -> '2'
-    Just (Kiki Left)        -> '4'
-    Just (Kiki Right)       -> '6'
-    Just ClockwiseBlock     -> ','
-    Just AntiClockwiseBlock -> ';'
-    Just CrackedBlock       -> 'C'
-    Just (Spinner _)        -> '+'
-    Just (Pusher Up _)      -> '^'
-    Just (Pusher Down _)    -> 'v'
-    Just (Pusher Left _)    -> '<'
-    Just (Pusher Right _)   -> '>'
-    Just (Magnet Up)        -> '|'
-    Just (Magnet Down)      -> '|'
-    Just (Magnet Left)      -> '-'
-    Just (Magnet Right)     -> '-'
-    Nothing                 -> ' '
+    Just Paku                -> '@'
+    Just Wall                -> 'W'
+    Just (Gem _ _)           -> 'G'
+    Just Block               -> 'B'
+    Just (Kiki Up)           -> '8'
+    Just (Kiki Down)         -> '2'
+    Just (Kiki Left)         -> '4'
+    Just (Kiki Right)        -> '6'
+    Just ClockwiseBlock      -> ','
+    Just AntiClockwiseBlock  -> ';'
+    Just CrackedBlock        -> 'C'
+    Just (Spinner _)         -> '+'
+    Just (Pusher Up _)       -> '^'
+    Just (Pusher Down _)     -> 'v'
+    Just (Pusher Left _)     -> '<'
+    Just (Pusher Right _)    -> '>'
+    Just (Magnet Vertical)   -> '|'
+    Just (Magnet Horizontal) -> '-'
+    Nothing                  -> ' '
 
 fromChar : Char -> Maybe Object
 fromChar c =
@@ -223,8 +217,8 @@ fromChar c =
     'v' -> Just (Pusher Down 0)
     '<' -> Just (Pusher Left 0)
     '>' -> Just (Pusher Right 0)
-    '|' -> Just (Magnet Up)
-    '-' -> Just (Magnet Left)
+    '|' -> Just (Magnet Vertical)
+    '-' -> Just (Magnet Horizontal)
     _ -> Nothing
 
 

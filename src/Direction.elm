@@ -6,6 +6,14 @@ type Direction
  | Left
  | Right
 
+values : List Direction
+values =
+  [ Up
+  , Down
+  , Left
+  , Right
+  ]
+
 rotateClockwise direction =
   case direction of
     Up -> Right
