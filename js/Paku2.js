@@ -5216,6 +5216,87 @@ var $elm$core$List$filterMap = F2(
 			_List_Nil,
 			xs);
 	});
+var $author$project$Object$AntiClockwiseBlock = {$: 'AntiClockwiseBlock'};
+var $author$project$Object$Block = {$: 'Block'};
+var $author$project$Object$ClockwiseBlock = {$: 'ClockwiseBlock'};
+var $author$project$Object$CrackedBlock = {$: 'CrackedBlock'};
+var $author$project$Direction$Down = {$: 'Down'};
+var $author$project$Object$Gem = F2(
+	function (a, b) {
+		return {$: 'Gem', a: a, b: b};
+	});
+var $author$project$Object$Kiki = function (a) {
+	return {$: 'Kiki', a: a};
+};
+var $author$project$Direction$Left = {$: 'Left'};
+var $author$project$Object$Magnet = function (a) {
+	return {$: 'Magnet', a: a};
+};
+var $author$project$Object$Paku = {$: 'Paku'};
+var $author$project$Object$Pusher = F2(
+	function (a, b) {
+		return {$: 'Pusher', a: a, b: b};
+	});
+var $author$project$Direction$Right = {$: 'Right'};
+var $author$project$Object$Spinner = function (a) {
+	return {$: 'Spinner', a: a};
+};
+var $author$project$Direction$Up = {$: 'Up'};
+var $author$project$Object$Wall = {$: 'Wall'};
+var $author$project$Object$fromChar = function (c) {
+	switch (c.valueOf()) {
+		case '@':
+			return $elm$core$Maybe$Just($author$project$Object$Paku);
+		case 'W':
+			return $elm$core$Maybe$Just($author$project$Object$Wall);
+		case 'G':
+			return $elm$core$Maybe$Just(
+				A2($author$project$Object$Gem, $author$project$Direction$Up, 0));
+		case 'B':
+			return $elm$core$Maybe$Just($author$project$Object$Block);
+		case '8':
+			return $elm$core$Maybe$Just(
+				$author$project$Object$Kiki($author$project$Direction$Up));
+		case '2':
+			return $elm$core$Maybe$Just(
+				$author$project$Object$Kiki($author$project$Direction$Down));
+		case '4':
+			return $elm$core$Maybe$Just(
+				$author$project$Object$Kiki($author$project$Direction$Left));
+		case '6':
+			return $elm$core$Maybe$Just(
+				$author$project$Object$Kiki($author$project$Direction$Right));
+		case ',':
+			return $elm$core$Maybe$Just($author$project$Object$ClockwiseBlock);
+		case ';':
+			return $elm$core$Maybe$Just($author$project$Object$AntiClockwiseBlock);
+		case 'C':
+			return $elm$core$Maybe$Just($author$project$Object$CrackedBlock);
+		case '+':
+			return $elm$core$Maybe$Just(
+				$author$project$Object$Spinner(0));
+		case '^':
+			return $elm$core$Maybe$Just(
+				A2($author$project$Object$Pusher, $author$project$Direction$Up, 0));
+		case 'v':
+			return $elm$core$Maybe$Just(
+				A2($author$project$Object$Pusher, $author$project$Direction$Down, 0));
+		case '<':
+			return $elm$core$Maybe$Just(
+				A2($author$project$Object$Pusher, $author$project$Direction$Left, 0));
+		case '>':
+			return $elm$core$Maybe$Just(
+				A2($author$project$Object$Pusher, $author$project$Direction$Right, 0));
+		case '|':
+			return $elm$core$Maybe$Just(
+				$author$project$Object$Magnet($author$project$Direction$Up));
+		case '-':
+			return $elm$core$Maybe$Just(
+				$author$project$Object$Magnet($author$project$Direction$Left));
+		default:
+			return $elm$core$Maybe$Nothing;
+	}
+};
 var $elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -5439,78 +5520,6 @@ var $elm$core$Dict$fromList = function (assocs) {
 		$elm$core$Dict$empty,
 		assocs);
 };
-var $author$project$Object$AntiClockwiseBlock = {$: 'AntiClockwiseBlock'};
-var $author$project$Object$Block = {$: 'Block'};
-var $author$project$Object$ClockwiseBlock = {$: 'ClockwiseBlock'};
-var $author$project$Object$CrackedBlock = {$: 'CrackedBlock'};
-var $author$project$Direction$Down = {$: 'Down'};
-var $author$project$Object$Gem = F2(
-	function (a, b) {
-		return {$: 'Gem', a: a, b: b};
-	});
-var $author$project$Object$Kiki = function (a) {
-	return {$: 'Kiki', a: a};
-};
-var $author$project$Direction$Left = {$: 'Left'};
-var $author$project$Object$Paku = {$: 'Paku'};
-var $author$project$Object$Pusher = F2(
-	function (a, b) {
-		return {$: 'Pusher', a: a, b: b};
-	});
-var $author$project$Direction$Right = {$: 'Right'};
-var $author$project$Object$Spinner = function (a) {
-	return {$: 'Spinner', a: a};
-};
-var $author$project$Direction$Up = {$: 'Up'};
-var $author$project$Object$Wall = {$: 'Wall'};
-var $author$project$Stage$objFromChar = function (c) {
-	switch (c.valueOf()) {
-		case '@':
-			return $elm$core$Maybe$Just($author$project$Object$Paku);
-		case 'W':
-			return $elm$core$Maybe$Just($author$project$Object$Wall);
-		case 'G':
-			return $elm$core$Maybe$Just(
-				A2($author$project$Object$Gem, $author$project$Direction$Up, 0));
-		case 'B':
-			return $elm$core$Maybe$Just($author$project$Object$Block);
-		case '8':
-			return $elm$core$Maybe$Just(
-				$author$project$Object$Kiki($author$project$Direction$Up));
-		case '2':
-			return $elm$core$Maybe$Just(
-				$author$project$Object$Kiki($author$project$Direction$Down));
-		case '4':
-			return $elm$core$Maybe$Just(
-				$author$project$Object$Kiki($author$project$Direction$Left));
-		case '6':
-			return $elm$core$Maybe$Just(
-				$author$project$Object$Kiki($author$project$Direction$Right));
-		case ',':
-			return $elm$core$Maybe$Just($author$project$Object$ClockwiseBlock);
-		case ';':
-			return $elm$core$Maybe$Just($author$project$Object$AntiClockwiseBlock);
-		case 'C':
-			return $elm$core$Maybe$Just($author$project$Object$CrackedBlock);
-		case '+':
-			return $elm$core$Maybe$Just(
-				$author$project$Object$Spinner(0));
-		case '^':
-			return $elm$core$Maybe$Just(
-				A2($author$project$Object$Pusher, $author$project$Direction$Up, 0));
-		case 'v':
-			return $elm$core$Maybe$Just(
-				A2($author$project$Object$Pusher, $author$project$Direction$Down, 0));
-		case '<':
-			return $elm$core$Maybe$Just(
-				A2($author$project$Object$Pusher, $author$project$Direction$Left, 0));
-		case '>':
-			return $elm$core$Maybe$Just(
-				A2($author$project$Object$Pusher, $author$project$Direction$Right, 0));
-		default:
-			return $elm$core$Maybe$Nothing;
-	}
-};
 var $elm$core$String$foldr = _String_foldr;
 var $elm$core$String$toList = function (string) {
 	return A3($elm$core$String$foldr, $elm$core$List$cons, _List_Nil, string);
@@ -5532,7 +5541,7 @@ var $author$project$Stage$fromString = function (src) {
 									function (o) {
 										return _Utils_Tuple2(coord, o);
 									},
-									$author$project$Stage$objFromChar(_char));
+									$author$project$Object$fromChar(_char));
 							},
 							A2(
 								$elm$core$List$indexedMap,
@@ -5549,7 +5558,6 @@ var $author$project$Stage$fromString = function (src) {
 };
 var $author$project$Paku2$initModel = function (flags) {
 	return {
-		frame: 0,
 		inputState: $author$project$Paku2$WaitForPlayerInput,
 		stage: $author$project$Stage$fromString(flags.stage),
 		stageEncoded: '',
@@ -6110,6 +6118,142 @@ var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $author$project$Paku2$EnemyTurn = function (a) {
 	return {$: 'EnemyTurn', a: a};
 };
+var $author$project$Direction$mirror = function (direction) {
+	switch (direction.$) {
+		case 'Up':
+			return $author$project$Direction$Down;
+		case 'Down':
+			return $author$project$Direction$Up;
+		case 'Left':
+			return $author$project$Direction$Right;
+		default:
+			return $author$project$Direction$Left;
+	}
+};
+var $author$project$Object$isFerromagnet = F2(
+	function (magDir, obj) {
+		switch (obj.$) {
+			case 'Block':
+				return true;
+			case 'Kiki':
+				return true;
+			case 'ClockwiseBlock':
+				return true;
+			case 'AntiClockwiseBlock':
+				return true;
+			case 'Spinner':
+				return true;
+			case 'Pusher':
+				return true;
+			case 'Magnet':
+				var d = obj.a;
+				var _v1 = _Utils_Tuple2(magDir, d);
+				_v1$8:
+				while (true) {
+					switch (_v1.a.$) {
+						case 'Up':
+							switch (_v1.b.$) {
+								case 'Left':
+									var _v2 = _v1.a;
+									var _v3 = _v1.b;
+									return true;
+								case 'Right':
+									var _v4 = _v1.a;
+									var _v5 = _v1.b;
+									return true;
+								default:
+									break _v1$8;
+							}
+						case 'Down':
+							switch (_v1.b.$) {
+								case 'Left':
+									var _v6 = _v1.a;
+									var _v7 = _v1.b;
+									return true;
+								case 'Right':
+									var _v8 = _v1.a;
+									var _v9 = _v1.b;
+									return true;
+								default:
+									break _v1$8;
+							}
+						case 'Left':
+							switch (_v1.b.$) {
+								case 'Up':
+									var _v10 = _v1.a;
+									var _v11 = _v1.b;
+									return true;
+								case 'Down':
+									var _v12 = _v1.a;
+									var _v13 = _v1.b;
+									return true;
+								default:
+									break _v1$8;
+							}
+						default:
+							switch (_v1.b.$) {
+								case 'Up':
+									var _v14 = _v1.a;
+									var _v15 = _v1.b;
+									return true;
+								case 'Down':
+									var _v16 = _v1.a;
+									var _v17 = _v1.b;
+									return true;
+								default:
+									break _v1$8;
+							}
+					}
+				}
+				return false;
+			default:
+				return false;
+		}
+	});
+var $author$project$Stage$towards = F2(
+	function (direction, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		switch (direction.$) {
+			case 'Up':
+				return _Utils_Tuple2(x, y - 1);
+			case 'Down':
+				return _Utils_Tuple2(x, y + 1);
+			case 'Left':
+				return _Utils_Tuple2(x - 1, y);
+			default:
+				return _Utils_Tuple2(x + 1, y);
+		}
+	});
+var $author$project$Stage$tryBound = F4(
+	function (pos, d, map, bounded) {
+		var _v0 = A2(
+			$elm$core$Dict$get,
+			A2($author$project$Stage$towards, d, pos),
+			map);
+		if (_v0.$ === 'Just') {
+			var o = _v0.a;
+			return A2($author$project$Object$isFerromagnet, d, o) ? A2($elm$core$List$cons, pos, bounded) : bounded;
+		} else {
+			return bounded;
+		}
+	});
+var $author$project$Stage$accBounded = F3(
+	function (map, _v0, bounded) {
+		var pos = _v0.a;
+		var obj = _v0.b;
+		if (obj.$ === 'Magnet') {
+			var d = obj.a;
+			return A4(
+				$author$project$Stage$tryBound,
+				pos,
+				$author$project$Direction$mirror(d),
+				map,
+				A4($author$project$Stage$tryBound, pos, d, map, bounded));
+		} else {
+			return bounded;
+		}
+	});
 var $elm$random$Random$Generator = function (a) {
 	return {$: 'Generator', a: a};
 };
@@ -6132,197 +6276,36 @@ var $elm$random$Random$constant = function (value) {
 			return _Utils_Tuple2(value, seed);
 		});
 };
-var $author$project$Stage$CannotEntry = {$: 'CannotEntry'};
-var $author$project$Stage$JustEntry = {$: 'JustEntry'};
-var $author$project$Stage$PushEntry = function (a) {
-	return {$: 'PushEntry', a: a};
-};
-var $elm$core$Bitwise$and = _Bitwise_and;
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
-var $elm$random$Random$Seed = F2(
-	function (a, b) {
-		return {$: 'Seed', a: a, b: b};
-	});
-var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
-var $elm$random$Random$next = function (_v0) {
-	var state0 = _v0.a;
-	var incr = _v0.b;
-	return A2($elm$random$Random$Seed, ((state0 * 1664525) + incr) >>> 0, incr);
-};
-var $elm$core$Bitwise$xor = _Bitwise_xor;
-var $elm$random$Random$peel = function (_v0) {
-	var state = _v0.a;
-	var word = (state ^ (state >>> ((state >>> 28) + 4))) * 277803737;
-	return ((word >>> 22) ^ word) >>> 0;
-};
-var $elm$random$Random$int = F2(
-	function (a, b) {
-		return $elm$random$Random$Generator(
-			function (seed0) {
-				var _v0 = (_Utils_cmp(a, b) < 0) ? _Utils_Tuple2(a, b) : _Utils_Tuple2(b, a);
-				var lo = _v0.a;
-				var hi = _v0.b;
-				var range = (hi - lo) + 1;
-				if (!((range - 1) & range)) {
-					return _Utils_Tuple2(
-						(((range - 1) & $elm$random$Random$peel(seed0)) >>> 0) + lo,
-						$elm$random$Random$next(seed0));
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
 				} else {
-					var threshhold = (((-range) >>> 0) % range) >>> 0;
-					var accountForBias = function (seed) {
-						accountForBias:
-						while (true) {
-							var x = $elm$random$Random$peel(seed);
-							var seedN = $elm$random$Random$next(seed);
-							if (_Utils_cmp(x, threshhold) < 0) {
-								var $temp$seed = seedN;
-								seed = $temp$seed;
-								continue accountForBias;
-							} else {
-								return _Utils_Tuple2((x % range) + lo, seedN);
-							}
-						}
-					};
-					return accountForBias(seed0);
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
 				}
-			});
-	});
-var $elm$random$Random$map2 = F3(
-	function (func, _v0, _v1) {
-		var genA = _v0.a;
-		var genB = _v1.a;
-		return $elm$random$Random$Generator(
-			function (seed0) {
-				var _v2 = genA(seed0);
-				var a = _v2.a;
-				var seed1 = _v2.b;
-				var _v3 = genB(seed1);
-				var b = _v3.a;
-				var seed2 = _v3.b;
-				return _Utils_Tuple2(
-					A2(func, a, b),
-					seed2);
-			});
-	});
-var $elm$random$Random$pair = F2(
-	function (genA, genB) {
-		return A3(
-			$elm$random$Random$map2,
-			F2(
-				function (a, b) {
-					return _Utils_Tuple2(a, b);
-				}),
-			genA,
-			genB);
-	});
-var $elm$random$Random$map = F2(
-	function (func, _v0) {
-		var genA = _v0.a;
-		return $elm$random$Random$Generator(
-			function (seed0) {
-				var _v1 = genA(seed0);
-				var a = _v1.a;
-				var seed1 = _v1.b;
-				return _Utils_Tuple2(
-					func(a),
-					seed1);
-			});
-	});
-var $author$project$Stage$randomDirecction = A2(
-	$elm$random$Random$map,
-	function (n) {
-		switch (n) {
-			case 0:
-				return $author$project$Direction$Up;
-			case 1:
-				return $author$project$Direction$Down;
-			case 2:
-				return $author$project$Direction$Left;
-			default:
-				return $author$project$Direction$Right;
-		}
-	},
-	A2($elm$random$Random$int, 0, 3));
-var $author$project$Stage$gemGenerator = A2(
-	$elm$random$Random$pair,
-	$author$project$Stage$randomDirecction,
-	A2($elm$random$Random$int, 5, 10));
-var $elm$core$Dict$member = F2(
-	function (key, dict) {
-		var _v0 = A2($elm$core$Dict$get, key, dict);
-		if (_v0.$ === 'Just') {
-			return true;
-		} else {
-			return false;
+			}
 		}
 	});
-var $author$project$Direction$mirror = function (direction) {
-	switch (direction.$) {
-		case 'Up':
-			return $author$project$Direction$Down;
-		case 'Down':
-			return $author$project$Direction$Up;
-		case 'Left':
-			return $author$project$Direction$Right;
-		default:
-			return $author$project$Direction$Left;
-	}
-};
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $author$project$Stage$pakuPos = function (stage) {
-	return A2(
-		$elm$core$Maybe$withDefault,
-		_Utils_Tuple2(-1, -1),
-		A2(
-			$elm$core$Maybe$map,
-			$elm$core$Tuple$first,
-			$elm$core$List$head(
-				A2(
-					$elm$core$List$filter,
-					function (_v0) {
-						var obj = _v0.b;
-						return _Utils_eq(obj, $author$project$Object$Paku);
-					},
-					$elm$core$Dict$toList(stage.map)))));
-};
-var $author$project$Object$Aggressive = {$: 'Aggressive'};
-var $author$project$Object$Fixed = {$: 'Fixed'};
-var $author$project$Object$Movable = {$: 'Movable'};
-var $author$project$Object$Takable = {$: 'Takable'};
-var $author$project$Object$reaction = function (obj) {
-	switch (obj.$) {
-		case 'Paku':
-			return $author$project$Object$Fixed;
-		case 'Wall':
-			return $author$project$Object$Fixed;
-		case 'Gem':
-			return $author$project$Object$Takable;
-		case 'Block':
-			return $author$project$Object$Movable;
-		case 'Kiki':
-			return $author$project$Object$Movable;
-		case 'ClockwiseBlock':
-			return $author$project$Object$Movable;
-		case 'AntiClockwiseBlock':
-			return $author$project$Object$Movable;
-		case 'CrackedBlock':
-			return $author$project$Object$Takable;
-		case 'Spinner':
-			return $author$project$Object$Aggressive;
-		default:
-			return $author$project$Object$Movable;
-	}
-};
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
 	while (true) {
@@ -6685,6 +6668,212 @@ var $elm$core$Dict$remove = F2(
 			return x;
 		}
 	});
+var $elm$core$Dict$update = F3(
+	function (targetKey, alter, dictionary) {
+		var _v0 = alter(
+			A2($elm$core$Dict$get, targetKey, dictionary));
+		if (_v0.$ === 'Just') {
+			var value = _v0.a;
+			return A3($elm$core$Dict$insert, targetKey, value, dictionary);
+		} else {
+			return A2($elm$core$Dict$remove, targetKey, dictionary);
+		}
+	});
+var $author$project$Stage$tryPull = F3(
+	function (pos, d, _v0) {
+		var map = _v0.a;
+		var bounded = _v0.b;
+		var canceled = _v0.c;
+		var front = A2($author$project$Stage$towards, d, pos);
+		var spaceInFront = _Utils_eq(
+			$elm$core$Maybe$Nothing,
+			A2($elm$core$Dict$get, front, map));
+		var back = A2(
+			$author$project$Stage$towards,
+			d,
+			A2($author$project$Stage$towards, d, pos));
+		var backObj = A2($elm$core$Dict$get, back, map);
+		var ferromagneticInBack = A2(
+			$elm$core$Maybe$withDefault,
+			false,
+			A2(
+				$elm$core$Maybe$map,
+				$author$project$Object$isFerromagnet(d),
+				backObj));
+		var notBounded = A2($elm$core$List$member, back, bounded) || A2($elm$core$List$member, back, canceled);
+		if (spaceInFront && (ferromagneticInBack && notBounded)) {
+			var map_ = A3(
+				$elm$core$Dict$update,
+				front,
+				function (_v1) {
+					return backObj;
+				},
+				A2($elm$core$Dict$remove, back, map));
+			var canceled_ = A2($elm$core$List$cons, back, canceled);
+			var bounded_ = A2($elm$core$List$cons, front, bounded);
+			return _Utils_Tuple3(map_, bounded_, canceled_);
+		} else {
+			return _Utils_Tuple3(map, bounded, canceled);
+		}
+	});
+var $author$project$Stage$magnetsStep = F2(
+	function (_v0, prev) {
+		var pos = _v0.a;
+		var obj = _v0.b;
+		var _v1 = prev;
+		var canceled = _v1.c;
+		if (A2($elm$core$List$member, pos, canceled)) {
+			return prev;
+		} else {
+			if (obj.$ === 'Magnet') {
+				var d = obj.a;
+				return A3(
+					$author$project$Stage$tryPull,
+					pos,
+					$author$project$Direction$mirror(d),
+					A3($author$project$Stage$tryPull, pos, d, prev));
+			} else {
+				return prev;
+			}
+		}
+	});
+var $elm$core$Bitwise$and = _Bitwise_and;
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$random$Random$Seed = F2(
+	function (a, b) {
+		return {$: 'Seed', a: a, b: b};
+	});
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$random$Random$next = function (_v0) {
+	var state0 = _v0.a;
+	var incr = _v0.b;
+	return A2($elm$random$Random$Seed, ((state0 * 1664525) + incr) >>> 0, incr);
+};
+var $elm$core$Bitwise$xor = _Bitwise_xor;
+var $elm$random$Random$peel = function (_v0) {
+	var state = _v0.a;
+	var word = (state ^ (state >>> ((state >>> 28) + 4))) * 277803737;
+	return ((word >>> 22) ^ word) >>> 0;
+};
+var $elm$random$Random$int = F2(
+	function (a, b) {
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var _v0 = (_Utils_cmp(a, b) < 0) ? _Utils_Tuple2(a, b) : _Utils_Tuple2(b, a);
+				var lo = _v0.a;
+				var hi = _v0.b;
+				var range = (hi - lo) + 1;
+				if (!((range - 1) & range)) {
+					return _Utils_Tuple2(
+						(((range - 1) & $elm$random$Random$peel(seed0)) >>> 0) + lo,
+						$elm$random$Random$next(seed0));
+				} else {
+					var threshhold = (((-range) >>> 0) % range) >>> 0;
+					var accountForBias = function (seed) {
+						accountForBias:
+						while (true) {
+							var x = $elm$random$Random$peel(seed);
+							var seedN = $elm$random$Random$next(seed);
+							if (_Utils_cmp(x, threshhold) < 0) {
+								var $temp$seed = seedN;
+								seed = $temp$seed;
+								continue accountForBias;
+							} else {
+								return _Utils_Tuple2((x % range) + lo, seedN);
+							}
+						}
+					};
+					return accountForBias(seed0);
+				}
+			});
+	});
+var $elm$random$Random$map2 = F3(
+	function (func, _v0, _v1) {
+		var genA = _v0.a;
+		var genB = _v1.a;
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var _v2 = genA(seed0);
+				var a = _v2.a;
+				var seed1 = _v2.b;
+				var _v3 = genB(seed1);
+				var b = _v3.a;
+				var seed2 = _v3.b;
+				return _Utils_Tuple2(
+					A2(func, a, b),
+					seed2);
+			});
+	});
+var $elm$random$Random$pair = F2(
+	function (genA, genB) {
+		return A3(
+			$elm$random$Random$map2,
+			F2(
+				function (a, b) {
+					return _Utils_Tuple2(a, b);
+				}),
+			genA,
+			genB);
+	});
+var $elm$random$Random$map = F2(
+	function (func, _v0) {
+		var genA = _v0.a;
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var _v1 = genA(seed0);
+				var a = _v1.a;
+				var seed1 = _v1.b;
+				return _Utils_Tuple2(
+					func(a),
+					seed1);
+			});
+	});
+var $author$project$Stage$randomDirecction = A2(
+	$elm$random$Random$map,
+	function (n) {
+		switch (n) {
+			case 0:
+				return $author$project$Direction$Up;
+			case 1:
+				return $author$project$Direction$Down;
+			case 2:
+				return $author$project$Direction$Left;
+			default:
+				return $author$project$Direction$Right;
+		}
+	},
+	A2($elm$random$Random$int, 0, 3));
+var $author$project$Stage$gemGenerator = A2(
+	$elm$random$Random$pair,
+	$author$project$Stage$randomDirecction,
+	A2($elm$random$Random$int, 5, 10));
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Stage$pakuPos = function (stage) {
+	return A2(
+		$elm$core$Maybe$withDefault,
+		_Utils_Tuple2(-1, -1),
+		A2(
+			$elm$core$Maybe$map,
+			$elm$core$Tuple$first,
+			$elm$core$List$head(
+				A2(
+					$elm$core$List$filter,
+					function (_v0) {
+						var obj = _v0.b;
+						return _Utils_eq(obj, $author$project$Object$Paku);
+					},
+					$elm$core$Dict$toList(stage.map)))));
+};
 var $author$project$Direction$rotateAntiClockwise = function (direction) {
 	switch (direction.$) {
 		case 'Up':
@@ -6735,64 +6924,54 @@ var $author$project$Stage$spinnerAi = F2(
 			},
 			A2($elm$random$Random$int, 0, 3));
 	});
-var $author$project$Stage$towards = F2(
-	function (direction, _v0) {
-		var x = _v0.a;
-		var y = _v0.b;
-		switch (direction.$) {
-			case 'Up':
-				return _Utils_Tuple2(x, y - 1);
-			case 'Down':
-				return _Utils_Tuple2(x, y + 1);
-			case 'Left':
-				return _Utils_Tuple2(x - 1, y);
-			default:
-				return _Utils_Tuple2(x + 1, y);
-		}
-	});
-var $author$project$Stage$step = F3(
-	function (pos, obj, stage) {
+var $author$project$Stage$miscsStep = F4(
+	function (pos, obj, stage, interfered) {
+		var bounded = A2($elm$core$List$member, pos, interfered);
 		switch (obj.$) {
 			case 'Kiki':
 				var direction = obj.a;
-				var map = function () {
-					var _v1 = A2(
-						$elm$core$Dict$get,
-						A2($author$project$Stage$towards, direction, pos),
-						stage.map);
-					if (_v1.$ === 'Nothing') {
-						return A3(
-							$elm$core$Dict$insert,
+				if (bounded) {
+					return $elm$random$Random$constant(stage);
+				} else {
+					var map = function () {
+						var _v1 = A2(
+							$elm$core$Dict$get,
 							A2($author$project$Stage$towards, direction, pos),
-							obj,
-							A2($elm$core$Dict$remove, pos, stage.map));
-					} else {
-						switch (_v1.a.$) {
-							case 'ClockwiseBlock':
-								var _v2 = _v1.a;
-								return A3(
-									$elm$core$Dict$insert,
-									pos,
-									$author$project$Object$Kiki(
-										$author$project$Direction$rotateClockwise(direction)),
-									stage.map);
-							case 'AntiClockwiseBlock':
-								var _v3 = _v1.a;
-								return A3(
-									$elm$core$Dict$insert,
-									pos,
-									$author$project$Object$Kiki(
-										$author$project$Direction$rotateAntiClockwise(direction)),
-									stage.map);
-							default:
-								return stage.map;
+							stage.map);
+						if (_v1.$ === 'Nothing') {
+							return A3(
+								$elm$core$Dict$insert,
+								A2($author$project$Stage$towards, direction, pos),
+								obj,
+								A2($elm$core$Dict$remove, pos, stage.map));
+						} else {
+							switch (_v1.a.$) {
+								case 'ClockwiseBlock':
+									var _v2 = _v1.a;
+									return A3(
+										$elm$core$Dict$insert,
+										pos,
+										$author$project$Object$Kiki(
+											$author$project$Direction$rotateClockwise(direction)),
+										stage.map);
+								case 'AntiClockwiseBlock':
+									var _v3 = _v1.a;
+									return A3(
+										$elm$core$Dict$insert,
+										pos,
+										$author$project$Object$Kiki(
+											$author$project$Direction$rotateAntiClockwise(direction)),
+										stage.map);
+								default:
+									return stage.map;
+							}
 						}
-					}
-				}();
-				return $elm$random$Random$constant(
-					_Utils_update(
-						stage,
-						{map: map}));
+					}();
+					return $elm$random$Random$constant(
+						_Utils_update(
+							stage,
+							{map: map}));
+				}
 			case 'Gem':
 				if (!obj.b) {
 					var frame = obj.a;
@@ -6839,7 +7018,7 @@ var $author$project$Stage$step = F3(
 					$elm$random$Random$map,
 					function (direction) {
 						var removedMap = A2($elm$core$Dict$remove, pos, stage.map);
-						var nextPos = A2(
+						var nextPos = bounded ? pos : A2(
 							$elm$core$Maybe$withDefault,
 							pos,
 							A2(
@@ -6877,23 +7056,89 @@ var $author$project$Stage$step = F3(
 						$author$project$Stage$spinnerAi,
 						pos,
 						$author$project$Stage$pakuPos(stage)));
-			case 'Pusher':
+			default:
+				return $elm$random$Random$constant(stage);
+		}
+	});
+var $author$project$Stage$CannotEntry = {$: 'CannotEntry'};
+var $author$project$Stage$JustEntry = {$: 'JustEntry'};
+var $author$project$Stage$PushEntry = function (a) {
+	return {$: 'PushEntry', a: a};
+};
+var $elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$get, key, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $author$project$Stage$pusherWait = 6;
+var $author$project$Object$Aggressive = {$: 'Aggressive'};
+var $author$project$Object$Fixed = {$: 'Fixed'};
+var $author$project$Object$Movable = {$: 'Movable'};
+var $author$project$Object$Takable = {$: 'Takable'};
+var $author$project$Object$reaction = function (obj) {
+	switch (obj.$) {
+		case 'Paku':
+			return $author$project$Object$Fixed;
+		case 'Wall':
+			return $author$project$Object$Fixed;
+		case 'Gem':
+			return $author$project$Object$Takable;
+		case 'Block':
+			return $author$project$Object$Movable;
+		case 'Kiki':
+			return $author$project$Object$Movable;
+		case 'ClockwiseBlock':
+			return $author$project$Object$Movable;
+		case 'AntiClockwiseBlock':
+			return $author$project$Object$Movable;
+		case 'CrackedBlock':
+			return $author$project$Object$Takable;
+		case 'Spinner':
+			return $author$project$Object$Aggressive;
+		case 'Pusher':
+			return $author$project$Object$Movable;
+		default:
+			return $author$project$Object$Movable;
+	}
+};
+var $author$project$Stage$pushersStep = F2(
+	function (_v0, prev) {
+		var pos = _v0.a;
+		var obj = _v0.b;
+		var _v1 = prev;
+		var map = _v1.a;
+		var interfered = _v1.b;
+		if (A2($elm$core$List$member, pos, interfered)) {
+			return prev;
+		} else {
+			if (obj.$ === 'Pusher') {
 				if (!obj.b) {
 					var d = obj.a;
-					var pusherWait = 6;
 					var p1 = A2($author$project$Stage$towards, d, pos);
 					var p2 = A2($author$project$Stage$towards, d, p1);
-					var o1 = A2($elm$core$Dict$get, p1, stage.map);
+					var o1 = A2($elm$core$Dict$get, p1, map);
 					var entryType = A2(
 						$elm$core$Maybe$withDefault,
 						$author$project$Stage$JustEntry,
 						A2(
 							$elm$core$Maybe$map,
 							function (o) {
-								var _v10 = $author$project$Object$reaction(o);
-								switch (_v10.$) {
+								var _v4 = $author$project$Object$reaction(o);
+								switch (_v4.$) {
 									case 'Movable':
-										return A2($elm$core$Dict$member, p2, stage.map) ? $author$project$Stage$CannotEntry : $author$project$Stage$PushEntry(o);
+										if (A2($elm$core$Dict$member, p2, map) || A2($elm$core$List$member, p1, interfered)) {
+											return $author$project$Stage$CannotEntry;
+										} else {
+											if (o.$ === 'Pusher') {
+												return $author$project$Stage$CannotEntry;
+											} else {
+												return $author$project$Stage$PushEntry(o);
+											}
+										}
 									case 'Fixed':
 										return $author$project$Stage$CannotEntry;
 									default:
@@ -6901,75 +7146,92 @@ var $author$project$Stage$step = F3(
 								}
 							},
 							o1));
-					var map = function () {
-						switch (entryType.$) {
-							case 'JustEntry':
-								return A3(
+					switch (entryType.$) {
+						case 'JustEntry':
+							var map_ = A3(
+								$elm$core$Dict$insert,
+								p1,
+								A2($author$project$Object$Pusher, d, $author$project$Stage$pusherWait),
+								A2($elm$core$Dict$remove, pos, map));
+							return _Utils_Tuple2(map_, interfered);
+						case 'PushEntry':
+							var o = entryType.a;
+							var map_ = A3(
+								$elm$core$Dict$insert,
+								pos,
+								A2(
+									$author$project$Object$Pusher,
+									$author$project$Direction$mirror(d),
+									$author$project$Stage$pusherWait),
+								A3(
 									$elm$core$Dict$insert,
-									p1,
-									A2($author$project$Object$Pusher, d, pusherWait),
-									A2($elm$core$Dict$remove, pos, stage.map));
-							case 'PushEntry':
-								var o = entryType.a;
-								return A3(
-									$elm$core$Dict$insert,
-									p1,
-									A2(
-										$author$project$Object$Pusher,
-										$author$project$Direction$mirror(d),
-										pusherWait),
-									A3(
-										$elm$core$Dict$insert,
-										p2,
-										o,
-										A2($elm$core$Dict$remove, pos, stage.map)));
-							case 'CannotEntry':
-								return A3(
-									$elm$core$Dict$insert,
-									pos,
-									A2(
-										$author$project$Object$Pusher,
-										$author$project$Direction$mirror(d),
-										pusherWait),
-									stage.map);
-							default:
-								return stage.map;
-						}
-					}();
-					return $elm$random$Random$constant(
-						_Utils_update(
-							stage,
-							{map: map}));
+									p2,
+									o,
+									A2($elm$core$Dict$remove, p1, map)));
+							return _Utils_Tuple2(
+								map_,
+								A2($elm$core$List$cons, p2, interfered));
+						case 'CannotEntry':
+							var map_ = A3(
+								$elm$core$Dict$insert,
+								pos,
+								A2(
+									$author$project$Object$Pusher,
+									$author$project$Direction$mirror(d),
+									$author$project$Stage$pusherWait),
+								map);
+							return _Utils_Tuple2(map_, interfered);
+						default:
+							return prev;
+					}
 				} else {
 					var d = obj.a;
 					var n = obj.b;
-					var map = A3(
-						$elm$core$Dict$insert,
-						pos,
-						A2($author$project$Object$Pusher, d, n - 1),
-						stage.map);
-					return $elm$random$Random$constant(
-						_Utils_update(
-							stage,
-							{map: map}));
+					var nextPusher = A2($elm$core$List$member, pos, interfered) ? A2($author$project$Object$Pusher, d, $author$project$Stage$pusherWait) : A2($author$project$Object$Pusher, d, n - 1);
+					var map_ = A3($elm$core$Dict$insert, pos, nextPusher, map);
+					return _Utils_Tuple2(map_, interfered);
 				}
-			default:
-				return $elm$random$Random$constant(stage);
+			} else {
+				return prev;
+			}
 		}
 	});
 var $author$project$Stage$enemyTurn = function (stage) {
-	var init = $elm$random$Random$constant(stage);
+	var map = stage.map;
+	var bounded = A3(
+		$elm$core$List$foldl,
+		$author$project$Stage$accBounded(map),
+		_List_Nil,
+		$elm$core$Dict$toList(map));
+	var _v0 = A3(
+		$elm$core$List$foldl,
+		$author$project$Stage$magnetsStep,
+		_Utils_Tuple3(map, bounded, _List_Nil),
+		$elm$core$Dict$toList(map));
+	var map_ = _v0.a;
+	var bounded_ = _v0.b;
+	var _v1 = A3(
+		$elm$core$List$foldl,
+		$author$project$Stage$pushersStep,
+		_Utils_Tuple2(map_, bounded_),
+		$elm$core$Dict$toList(map_));
+	var map__ = _v1.a;
+	var interfered = _v1.b;
 	var acc = F2(
-		function (_v0, prev) {
-			var pos = _v0.a;
-			var obj = _v0.b;
+		function (_v2, prev) {
+			var pos = _v2.a;
+			var obj = _v2.b;
 			return A2(
 				$elm$random$Random$andThen,
 				function (stage_) {
-					return A3($author$project$Stage$step, pos, obj, stage_);
+					return A4($author$project$Stage$miscsStep, pos, obj, stage_, interfered);
 				},
 				prev);
 		});
+	var init = $elm$random$Random$constant(
+		_Utils_update(
+			stage,
+			{map: map__}));
 	return A3(
 		$elm$core$List$foldl,
 		acc,
@@ -7194,7 +7456,6 @@ var $author$project$Paku2$update = F2(
 					_Utils_update(
 						model,
 						{
-							frame: model.frame + 1,
 							inputState: _Utils_eq(
 								$author$project$Stage$state(stage),
 								$author$project$Stage$Miss) ? $author$project$Paku2$WaitForAnimation : $author$project$Paku2$WaitForPlayerInput,
@@ -7472,7 +7733,7 @@ var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
 var $elm$svg$Svg$Attributes$class = _VirtualDom_attribute('class');
-var $author$project$Object$fadeOut = function (content) {
+var $author$project$Stage$fadeOut = function (content) {
 	return A2(
 		$elm$svg$Svg$g,
 		_List_fromArray(
@@ -7630,66 +7891,6 @@ var $author$project$Object$Rectangle = F6(
 var $author$project$Object$black = '#000000';
 var $author$project$Object$blue = '#0000FF';
 var $author$project$Object$darkBlue = '#000088';
-var $author$project$Object$gray = '#888888';
-var $author$project$Object$green = '#00FF00';
-var $author$project$Object$lightBlue = '#8888FF';
-var $author$project$Object$lightGray = '#AAAAAA';
-var $author$project$Object$lightYellow = '#FFFF88';
-var $author$project$Object$magenta = '#FF00FF';
-var $author$project$Object$mirrorXPoint = function (_v0) {
-	var x_ = _v0.a;
-	var y_ = _v0.b;
-	return _Utils_Tuple2($author$project$Object$chipSize - x_, y_);
-};
-var $author$project$Object$mirrorX = function (figure) {
-	switch (figure.$) {
-		case 'Rectangle':
-			var x_ = figure.a;
-			var y_ = figure.b;
-			var w_ = figure.c;
-			var h_ = figure.d;
-			var s_ = figure.e;
-			var f_ = figure.f;
-			var pl = _List_fromArray(
-				[
-					_Utils_Tuple2(x_, y_),
-					_Utils_Tuple2(x_ + w_, y_),
-					_Utils_Tuple2(x_ + w_, y_ + h_),
-					_Utils_Tuple2(x_, y_ + h_)
-				]);
-			return $author$project$Object$mirrorX(
-				A3($author$project$Object$Polygon, pl, s_, f_));
-		case 'Polygon':
-			var pl = figure.a;
-			var s_ = figure.b;
-			var f_ = figure.c;
-			return A3(
-				$author$project$Object$Polygon,
-				A2($elm$core$List$map, $author$project$Object$mirrorXPoint, pl),
-				s_,
-				f_);
-		case 'Polyline':
-			var pl = figure.a;
-			var s_ = figure.b;
-			return A2(
-				$author$project$Object$Polyline,
-				A2($elm$core$List$map, $author$project$Object$mirrorXPoint, pl),
-				s_);
-		default:
-			var x_ = figure.a;
-			var y_ = figure.b;
-			var r_ = figure.c;
-			var s_ = figure.d;
-			var f_ = figure.e;
-			var _v1 = $author$project$Object$mirrorXPoint(
-				_Utils_Tuple2(x_, y_));
-			var x__ = _v1.a;
-			var y__ = _v1.b;
-			return A5($author$project$Object$Circle, x__, y__, r_, s_, f_);
-	}
-};
-var $author$project$Object$none = 'none';
-var $author$project$Object$red = '#FF0000';
 var $elm$core$Basics$cos = _Basics_cos;
 var $elm$core$Basics$pi = _Basics_pi;
 var $elm$core$Basics$degrees = function (angleInDegrees) {
@@ -7764,6 +7965,88 @@ var $author$project$Object$rotate = F2(
 				return A5($author$project$Object$Circle, x__, y__, r_, s_, f_);
 		}
 	});
+var $author$project$Object$directional = F2(
+	function (d, figList) {
+		switch (d.$) {
+			case 'Up':
+				return figList;
+			case 'Down':
+				return A2(
+					$elm$core$List$map,
+					$author$project$Object$rotate(180),
+					figList);
+			case 'Left':
+				return A2(
+					$elm$core$List$map,
+					$author$project$Object$rotate(270),
+					figList);
+			default:
+				return A2(
+					$elm$core$List$map,
+					$author$project$Object$rotate(90),
+					figList);
+		}
+	});
+var $author$project$Object$gray = '#888888';
+var $author$project$Object$green = '#00FF00';
+var $author$project$Object$lightBlue = '#8888FF';
+var $author$project$Object$lightGray = '#AAAAAA';
+var $author$project$Object$lightYellow = '#FFFF88';
+var $author$project$Object$magenta = '#FF00FF';
+var $author$project$Object$mirrorXPoint = function (_v0) {
+	var x_ = _v0.a;
+	var y_ = _v0.b;
+	return _Utils_Tuple2($author$project$Object$chipSize - x_, y_);
+};
+var $author$project$Object$mirrorX = function (figure) {
+	switch (figure.$) {
+		case 'Rectangle':
+			var x_ = figure.a;
+			var y_ = figure.b;
+			var w_ = figure.c;
+			var h_ = figure.d;
+			var s_ = figure.e;
+			var f_ = figure.f;
+			var pl = _List_fromArray(
+				[
+					_Utils_Tuple2(x_, y_),
+					_Utils_Tuple2(x_ + w_, y_),
+					_Utils_Tuple2(x_ + w_, y_ + h_),
+					_Utils_Tuple2(x_, y_ + h_)
+				]);
+			return $author$project$Object$mirrorX(
+				A3($author$project$Object$Polygon, pl, s_, f_));
+		case 'Polygon':
+			var pl = figure.a;
+			var s_ = figure.b;
+			var f_ = figure.c;
+			return A3(
+				$author$project$Object$Polygon,
+				A2($elm$core$List$map, $author$project$Object$mirrorXPoint, pl),
+				s_,
+				f_);
+		case 'Polyline':
+			var pl = figure.a;
+			var s_ = figure.b;
+			return A2(
+				$author$project$Object$Polyline,
+				A2($elm$core$List$map, $author$project$Object$mirrorXPoint, pl),
+				s_);
+		default:
+			var x_ = figure.a;
+			var y_ = figure.b;
+			var r_ = figure.c;
+			var s_ = figure.d;
+			var f_ = figure.e;
+			var _v1 = $author$project$Object$mirrorXPoint(
+				_Utils_Tuple2(x_, y_));
+			var x__ = _v1.a;
+			var y__ = _v1.b;
+			return A5($author$project$Object$Circle, x__, y__, r_, s_, f_);
+	}
+};
+var $author$project$Object$none = 'none';
+var $author$project$Object$red = '#FF0000';
 var $author$project$Object$white = '#FFFFFF';
 var $author$project$Object$yellow = '#FFFF00';
 var $author$project$Object$tofigureList = function (obj) {
@@ -7780,120 +8063,78 @@ var $author$project$Object$tofigureList = function (obj) {
 					A6($author$project$Object$Rectangle, 4.0, 4.0, 8.0, 8.0, $author$project$Object$white, $author$project$Object$none)
 				]);
 		case 'Gem':
-			switch (obj.a.$) {
-				case 'Up':
-					var _v1 = obj.a;
-					return _List_fromArray(
-						[
-							A3(
-							$author$project$Object$Polygon,
-							_List_fromArray(
-								[
-									_Utils_Tuple2(0.0, 8.0),
-									_Utils_Tuple2(8.0, 8.0),
-									_Utils_Tuple2(8.0, 0.0)
-								]),
-							$author$project$Object$none,
-							$author$project$Object$lightBlue),
-							A3(
-							$author$project$Object$Polygon,
-							_List_fromArray(
-								[
-									_Utils_Tuple2(8.0, 0.0),
-									_Utils_Tuple2(8.0, 8.0),
-									_Utils_Tuple2(16.0, 8.0)
-								]),
-							$author$project$Object$none,
-							$author$project$Object$darkBlue),
-							A3(
-							$author$project$Object$Polygon,
-							_List_fromArray(
-								[
-									_Utils_Tuple2(16.0, 8.0),
-									_Utils_Tuple2(8.0, 8.0),
-									_Utils_Tuple2(8.0, 16.0)
-								]),
-							$author$project$Object$none,
-							$author$project$Object$blue),
-							A3(
-							$author$project$Object$Polygon,
-							_List_fromArray(
-								[
-									_Utils_Tuple2(8.0, 16.0),
-									_Utils_Tuple2(8.0, 8.0),
-									_Utils_Tuple2(0.0, 8.0)
-								]),
-							$author$project$Object$none,
-							$author$project$Object$darkBlue)
-						]);
-				case 'Down':
-					var _v2 = obj.a;
-					return A2(
-						$elm$core$List$map,
-						$author$project$Object$rotate(180),
-						$author$project$Object$tofigureList(
-							A2($author$project$Object$Gem, $author$project$Direction$Up, 0)));
-				case 'Left':
-					var _v3 = obj.a;
-					return A2(
-						$elm$core$List$map,
-						$author$project$Object$rotate(270),
-						$author$project$Object$tofigureList(
-							A2($author$project$Object$Gem, $author$project$Direction$Up, 0)));
-				default:
-					var _v4 = obj.a;
-					return A2(
-						$elm$core$List$map,
-						$author$project$Object$rotate(90),
-						$author$project$Object$tofigureList(
-							A2($author$project$Object$Gem, $author$project$Direction$Up, 0)));
-			}
+			var d = obj.a;
+			return A2(
+				$author$project$Object$directional,
+				d,
+				_List_fromArray(
+					[
+						A3(
+						$author$project$Object$Polygon,
+						_List_fromArray(
+							[
+								_Utils_Tuple2(0.0, 8.0),
+								_Utils_Tuple2(8.0, 8.0),
+								_Utils_Tuple2(8.0, 0.0)
+							]),
+						$author$project$Object$none,
+						$author$project$Object$lightBlue),
+						A3(
+						$author$project$Object$Polygon,
+						_List_fromArray(
+							[
+								_Utils_Tuple2(8.0, 0.0),
+								_Utils_Tuple2(8.0, 8.0),
+								_Utils_Tuple2(16.0, 8.0)
+							]),
+						$author$project$Object$none,
+						$author$project$Object$darkBlue),
+						A3(
+						$author$project$Object$Polygon,
+						_List_fromArray(
+							[
+								_Utils_Tuple2(16.0, 8.0),
+								_Utils_Tuple2(8.0, 8.0),
+								_Utils_Tuple2(8.0, 16.0)
+							]),
+						$author$project$Object$none,
+						$author$project$Object$blue),
+						A3(
+						$author$project$Object$Polygon,
+						_List_fromArray(
+							[
+								_Utils_Tuple2(8.0, 16.0),
+								_Utils_Tuple2(8.0, 8.0),
+								_Utils_Tuple2(0.0, 8.0)
+							]),
+						$author$project$Object$none,
+						$author$project$Object$darkBlue)
+					]));
 		case 'Block':
 			return _List_fromArray(
 				[
 					A6($author$project$Object$Rectangle, 1.0, 1.0, 14.0, 14.0, $author$project$Object$black, $author$project$Object$yellow)
 				]);
 		case 'Kiki':
-			switch (obj.a.$) {
-				case 'Up':
-					var _v5 = obj.a;
-					return _List_fromArray(
-						[
-							A6($author$project$Object$Rectangle, 1.0, 1.0, 14.0, 14.0, $author$project$Object$black, $author$project$Object$yellow),
-							A2(
-							$author$project$Object$Polyline,
-							_List_fromArray(
-								[
-									_Utils_Tuple2(8.0, 13.0),
-									_Utils_Tuple2(8.0, 3.0),
-									_Utils_Tuple2(3.0, 8.0),
-									_Utils_Tuple2(13.0, 8.0),
-									_Utils_Tuple2(8.0, 3.0)
-								]),
-							$author$project$Object$red)
-						]);
-				case 'Down':
-					var _v6 = obj.a;
-					return A2(
-						$elm$core$List$map,
-						$author$project$Object$rotate(180),
-						$author$project$Object$tofigureList(
-							$author$project$Object$Kiki($author$project$Direction$Up)));
-				case 'Left':
-					var _v7 = obj.a;
-					return A2(
-						$elm$core$List$map,
-						$author$project$Object$rotate(270),
-						$author$project$Object$tofigureList(
-							$author$project$Object$Kiki($author$project$Direction$Up)));
-				default:
-					var _v8 = obj.a;
-					return A2(
-						$elm$core$List$map,
-						$author$project$Object$rotate(90),
-						$author$project$Object$tofigureList(
-							$author$project$Object$Kiki($author$project$Direction$Up)));
-			}
+			var d = obj.a;
+			return A2(
+				$author$project$Object$directional,
+				d,
+				_List_fromArray(
+					[
+						A6($author$project$Object$Rectangle, 1.0, 1.0, 14.0, 14.0, $author$project$Object$black, $author$project$Object$yellow),
+						A2(
+						$author$project$Object$Polyline,
+						_List_fromArray(
+							[
+								_Utils_Tuple2(8.0, 13.0),
+								_Utils_Tuple2(8.0, 3.0),
+								_Utils_Tuple2(3.0, 8.0),
+								_Utils_Tuple2(13.0, 8.0),
+								_Utils_Tuple2(8.0, 3.0)
+							]),
+						$author$project$Object$red)
+					]));
 		case 'ClockwiseBlock':
 			return _List_fromArray(
 				[
@@ -7964,47 +8205,61 @@ var $author$project$Object$tofigureList = function (obj) {
 						$author$project$Object$black),
 						A5($author$project$Object$Circle, 8.0, 8.0, 3.0, $author$project$Object$black, $author$project$Object$magenta)
 					]));
+		case 'Pusher':
+			var d = obj.a;
+			return A2(
+				$author$project$Object$directional,
+				d,
+				_List_fromArray(
+					[
+						A6($author$project$Object$Rectangle, 2.0, 7.0, 12.0, 6.0, $author$project$Object$red, $author$project$Object$yellow),
+						A3(
+						$author$project$Object$Polygon,
+						_List_fromArray(
+							[
+								_Utils_Tuple2(8.0, 2.0),
+								_Utils_Tuple2(14.0, 7.0),
+								_Utils_Tuple2(2.0, 7.0)
+							]),
+						$author$project$Object$none,
+						$author$project$Object$red),
+						A6($author$project$Object$Rectangle, 6.0, 7.0, 4.0, 6.0, $author$project$Object$none, $author$project$Object$red)
+					]));
 		default:
-			switch (obj.a.$) {
-				case 'Up':
-					var _v9 = obj.a;
-					return _List_fromArray(
-						[
-							A6($author$project$Object$Rectangle, 2.0, 7.0, 12.0, 6.0, $author$project$Object$red, $author$project$Object$yellow),
-							A3(
-							$author$project$Object$Polygon,
-							_List_fromArray(
-								[
-									_Utils_Tuple2(8.0, 2.0),
-									_Utils_Tuple2(14.0, 7.0),
-									_Utils_Tuple2(2.0, 7.0)
-								]),
-							$author$project$Object$none,
-							$author$project$Object$red),
-							A6($author$project$Object$Rectangle, 6.0, 7.0, 4.0, 6.0, $author$project$Object$none, $author$project$Object$red)
-						]);
-				case 'Down':
-					var _v10 = obj.a;
-					return A2(
-						$elm$core$List$map,
-						$author$project$Object$rotate(180),
-						$author$project$Object$tofigureList(
-							A2($author$project$Object$Pusher, $author$project$Direction$Up, 0)));
-				case 'Left':
-					var _v11 = obj.a;
-					return A2(
-						$elm$core$List$map,
-						$author$project$Object$rotate(270),
-						$author$project$Object$tofigureList(
-							A2($author$project$Object$Pusher, $author$project$Direction$Up, 0)));
-				default:
-					var _v12 = obj.a;
-					return A2(
-						$elm$core$List$map,
-						$author$project$Object$rotate(90),
-						$author$project$Object$tofigureList(
-							A2($author$project$Object$Pusher, $author$project$Direction$Up, 0)));
-			}
+			var d = obj.a;
+			return A2(
+				$author$project$Object$directional,
+				d,
+				_List_fromArray(
+					[
+						A3(
+						$author$project$Object$Polygon,
+						_List_fromArray(
+							[
+								_Utils_Tuple2(0, 3),
+								_Utils_Tuple2(1, 1),
+								_Utils_Tuple2(15, 1),
+								_Utils_Tuple2(16, 3),
+								_Utils_Tuple2(15, 5),
+								_Utils_Tuple2(1, 5)
+							]),
+						$author$project$Object$black,
+						$author$project$Object$red),
+						A6($author$project$Object$Rectangle, 4, 5, 8, 6, $author$project$Object$black, $author$project$Object$yellow),
+						A3(
+						$author$project$Object$Polygon,
+						_List_fromArray(
+							[
+								_Utils_Tuple2(0, 13),
+								_Utils_Tuple2(1, 11),
+								_Utils_Tuple2(15, 11),
+								_Utils_Tuple2(16, 13),
+								_Utils_Tuple2(15, 15),
+								_Utils_Tuple2(1, 15)
+							]),
+						$author$project$Object$black,
+						$author$project$Object$red)
+					]));
 	}
 };
 var $author$project$Object$translatePoint = F3(
@@ -8096,7 +8351,7 @@ var $author$project$Stage$view = function (stage) {
 				var x = _v2.a;
 				var y = _v2.b;
 				var obj = _v1.b;
-				return (_Utils_eq(obj, $author$project$Object$Paku) && stage.miss) ? $author$project$Object$fadeOut(
+				return (_Utils_eq(obj, $author$project$Object$Paku) && stage.miss) ? $author$project$Stage$fadeOut(
 					A3($author$project$Object$toSvg, x, y, obj)) : A3($author$project$Object$toSvg, x, y, obj);
 			},
 			$elm$core$Dict$toList(stage.map)));
